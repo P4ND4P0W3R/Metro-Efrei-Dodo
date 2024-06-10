@@ -1,4 +1,5 @@
 import heapq
+from copy import copy
 
 
 # Ce code n'est pas testé, il faudra le tester avec les données qu'on aura récupérées
@@ -84,6 +85,74 @@ class MetroSystem:
                     heapq.heappush(pq, (link.get_time(), link))
 
         return new_graph
+
+    def is_strong_connexe(self):
+        output = []
+        checked = [self.stations[0]]
+        stack = [(self.stations[0], [])]
+
+        while len(checked) != len(self.stations) or stack:
+            if not stack:
+                checked.sort(key=lambda station_id: station.id)
+                output.append(copy(checked))
+                checked.clear()
+
+                for station in self.stations:
+                    if not is_in_nested_list(station, output):
+                        stack.append((station, []))
+                        break
+
+            current, path = stack.pop(0)
+
+            for link in current.get_links():
+                neighbor = link.get_end() if link.get_start() == current and (not link.orientation or link.orientation == (link.get_start(), link.get_end())) else link.get_start() if (not link.orientation or link.orientation == (link.get_end(), link.get_start())) else None
+                if not neighbor:
+                    continue
+
+                if neighbor not in checked:
+                    stack.append((neighbor, path + [current]))
+                    checked.append(neighbor)
+
+        return output
+
+    def is_connected(self):
+        output = []
+        checked = [self.stations[0]]
+        stack = [(self.stations[0], [])]
+
+        while len(checked) != len(self.stations) or stack:
+            if not stack:
+                checked.sort(key=lambda station_id: station.id)
+                output.append(copy(checked))
+                checked.clear()
+
+                for station in self.stations:
+                    if not is_in_nested_list(station, output):
+                        stack.append((station, []))
+                        break
+
+            current, path = stack.pop(0)
+
+            for link in current.get_links():
+                neighbor = link.get_end() if link.get_start() == current else link.get_start()
+                if not neighbor:
+                    continue
+
+                if neighbor not in checked:
+                    stack.append((neighbor, path + [current]))
+                    checked.append(neighbor)
+
+        return output
+
+
+def is_in_nested_list(element, nested_list):
+    for item in nested_list:
+        if isinstance(item, list):
+            if is_in_nested_list(element, item):
+                return True
+        elif item == element:
+            return True
+    return False
 
 
 def dijkstra_station(start_station, end_station):
