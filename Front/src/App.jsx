@@ -1,54 +1,73 @@
-import Fuse from 'fuse.js'
-import { useState } from 'react'
-import {MapContainer,TileLayer,Marker,Popup} from 'react-leaflet';
+import { useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import './App.css'
+import './App.css';
 
-// const data = "Parys"
+// Fix for default icon issues in Leaflet
+import L from 'leaflet';
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
 
-// const fuse = new Fuse(data, {
-//   // The algorithms to use for fuzzy matching.
-//   algorithms: ["levenshtein", "jaro-winkler"],
-//   // The minimum similarity score required for a match.
-//   minScore: 70,
-// });
+function LocationMarker() {
+  const [position, setPosition] = useState(null);
+  const map = useMapEvents({
+    click() {
+      map.locate();
+    },
+    locationfound(e) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, map.getZoom());
+    },
+  });
 
-// // Search for the string "bar".
-// const results = fuse.search("bar");
+  return position === null ? null : (
+    <Marker position={position}>
+      <Popup>You are here</Popup>
+    </Marker>
+  );
+}
 
 const MapComponent = () => {
   return (
-    <MapContainer center={[51.505, -0.09]} zoom={9} style={{ height: "600px", width: "99%" }}>
+    <MapContainer center={[51.505, -0.09]} zoom={9} style={{ height: '600px', width: '99%' }}>
       <TileLayer
-      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={[51.505, -0.09]}>
+      <Marker position={[48, 2]}>
         <Popup>
           A pretty CSS3 popup. <br /> Easily customizable.
         </Popup>
       </Marker>
+      <LocationMarker />
     </MapContainer>
   );
 };
 
 function App() {
-
   return (
     <>
       <div>
         <h1>Indiquez votre destination</h1>
         <div className="App">
           <form>
-              <label>Lieu de départ: <input type = "texte" ></input></label>
-              <label>Lieu d'arrivé: <input type = "texte" ></input></label>
-              <input type = "submit" value = "Rechercher le plus court chemin"></input> 
+            <label>
+              Lieu de départ: <input type="text" />
+            </label>
+            <label>
+              Lieu d'arrivée: <input type="text" />
+            </label>
+            <input type="submit" value="Rechercher le plus court chemin" />
           </form>
         </div>
-        <MapComponent/>
+        <MapComponent />
       </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
