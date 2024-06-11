@@ -64,8 +64,8 @@ function App() {
             <input type="submit" value="Rechercher le plus court chemin" />
           </form>
         </div>
-        <MapComponent />
       </div>
+      <MapComponent />
     </>
   );
 }
