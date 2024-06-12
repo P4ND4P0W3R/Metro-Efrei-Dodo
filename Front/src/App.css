@@ -1,33 +1,55 @@
 @import url('https://unpkg.com/leaflet@1.7.1/dist/leaflet.css');
 
+.root
+{
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+}
 
-.App {
+#Form {
   width: 20vw;
-  height: 97.25vh;
+  height: 100vh;
   position: relative;
   left: 0;
   top: 0;
+  display: flex;
+  flex-direction: column;
   background-color: #000000;
-  padding: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+} 
 
+.root 
+{
+  display: flex;
 }
 
-.Main_Form {
+#Main_Form {
   padding-top: 30px;
   color: rgb(255, 255, 255);
   overflow: hidden
 }
 
-form {
-  display: flex;
-  flex-direction: column;
+.TitleForm
+{
+  font-size: 40px;
 }
 
-form label {
+.lieu_de_depart{
+  font-size: 25px;
   margin-bottom: 10px;
 }
 
-form input[type="text"] {
+.lieu_Arrivee{
+  font-size: 25px;
+  margin-bottom: 10px;
+}
+
+
+input[type="text"] {
+  height: 20px;
+  width: 200px;
   margin-left: 2%;
   margin-top: 10px;
   padding: 8px;
@@ -35,17 +57,63 @@ form input[type="text"] {
   border-radius: 4px;
 }
 
-form input[type="submit"] {
+#submitButton{
   font-size: 100%;
   text-overflow: ellipsis;
   margin-top: 20px;
   padding: 10px;
-  color: rgb(255, 255, 255);
+  color: rgb(73, 72, 72);
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
-form input[type="submit"]:hover {
+#submitButton:hover {
+  color: rgb(255, 255, 255);
   background-color: #0056b3;
+}
+
+@media screen and (max-width : 1100px){
+  .TitleForm{
+    font-size: 30px;
+  }
+
+  .lieu_de_depart
+  {
+    font-size: 20px;
+  }
+
+  .lieu_Arrivee
+  {
+    font-size: 20px;
+  }
+
+  input[type="text"]
+  {
+    height: 20px;
+    width: 130px;
+  }
+
+}
+
+@media screen and (max-width : 800px){
+  .TitleForm{
+    font-size: 20px;
+  }
+
+  .lieu_de_depart
+  {
+    font-size: 15px;
+  }
+
+  .lieu_Arrivee
+  {
+    font-size: 15px;
+  }
+
+  input[type="text"]
+  {
+    height: 20px;
+    width: 100px;
+  }
 }
