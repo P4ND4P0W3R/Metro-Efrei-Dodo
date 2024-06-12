@@ -1,1 +1,51 @@
 @import url('https://unpkg.com/leaflet@1.7.1/dist/leaflet.css');
+
+
+.App {
+  width: 20vw;
+  height: 97.25vh;
+  position: relative;
+  left: 0;
+  top: 0;
+  background-color: #000000;
+  padding: 20px;
+
+}
+
+.Main_Form {
+  padding-top: 30px;
+  color: rgb(255, 255, 255);
+  overflow: hidden
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  margin-bottom: 10px;
+}
+
+form input[type="text"] {
+  margin-left: 2%;
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+}
+
+form input[type="submit"] {
+  font-size: 100%;
+  text-overflow: ellipsis;
+  margin-top: 20px;
+  padding: 10px;
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+form input[type="submit"]:hover {
+  background-color: #0056b3;
+}
