@@ -1,4 +1,4 @@
-import heapq
+import time
 from copy import copy
 
 
@@ -6,11 +6,12 @@ from copy import copy
 
 
 class Station:
-    def __init__(self, num, name, lines):
+    def __init__(self, num, name):
         self.id = num  # id (int)
         self.name = name  # nom (String)
-        self.lines = lines  # lignes de métro reliées (list(TrainLine))
+        self.lines = []  # lignes de métro reliées (list(TrainLine))
         self.links = []  # liste des RailRoad connectées (list(RailRoad))
+        self.transits = {}  # liste des temps de transit (dict(tuple(link1, link2) = int(transit_time))
 
     def get_links(self):
         return self.links
@@ -48,41 +49,38 @@ class MetroSystem:
         self.stations = []  # toutes les stations (list(Station))
         self.lines = []  # toutes les lignes (list(TrainLine))
 
-    def prim(self, start_station_id):
+    def prim(self, start_station):
 
-        if not self.stations or start_station_id >= len(self.stations):  # vérification de l'objet fourni
+        if not self.stations or start_station not in self.stations:  # vérification de l'objet fourni
             return MetroSystem()
 
         new_graph = MetroSystem()
         visited_nodes = set()
         pq = []
 
-        start_node = self.stations[start_station_id]
-        visited_nodes.add(start_node)
-        new_graph.stations.append(start_node)
+        visited_nodes.add(start_station)
+        new_graph.stations.append(start_station)
 
-        for link in start_node.get_links():  # premier remplissage de la liste de priorité
-            heapq.heappush(pq, (link.get_time(), link))  # équivalent à append() mais prend en compte le coût pour réordonner la liste
+        for link in start_station.get_links():  # premier remplissage de la pile
+            pq.append((link.get_time(), link))
 
-        while len(visited_nodes) < len(self.stations):  # tant que tous les sommets ne sont pas ajoutés ...
-            if not pq:  # On vérifie s'il reste des arêtes dans la pile
-                break
+        while len(visited_nodes) < len(self.stations) and pq:  # tant que tous les sommets ne sont pas ajoutés ...
 
-            # On récupère les données du lien, la file de priorité nous permet de sélectionner le lien le plus optimal en fonction du coût
-            weight, min_link = heapq.heappop(pq)
+            # On récupère les données du lien
+            weight, min_link = pq.pop(0)
             end1 = min_link.get_start()
             end2 = min_link.get_end()
 
             if end1 in visited_nodes and end2 in visited_nodes:  # On vérifie si l'arête est utile (Un sommet pouvant être ajouté)
-                continue  # On passe au prochain objet de pq si ce n'est pas le cas
+                continue  # On passe à la prochaine si ce n'est pas le cas
 
             new_node = end2 if end1 in visited_nodes else end1  # On récupère le nouveau sommet
             visited_nodes.add(new_node)
             new_graph.stations.append(new_node)
 
-            for link in new_node.get_links():  # On vérifie les nouveaux liens de ce sommet
+            for link in new_node.get_links():  # On vérifie les nouveaux liens apportés par ce sommet
                 if link.get_start() not in visited_nodes or link.get_end() not in visited_nodes:
-                    heapq.heappush(pq, (link.get_time(), link))
+                    pq.append((link.get_time(), link))
 
         return new_graph
 
@@ -159,31 +157,48 @@ def dijkstra_station(start_station, end_station):
     if not start_station or not end_station:
         return None
 
-    pq = [(0, start_station, [])]  # Cette pile va se comporter comme une file de priorité
-    min_distances = {start_station: 0}  # Ce dictionnaire va référencer les coûts au niveau de chaque station
+    start_time = time.time()  # début d'enregistrement temps d'exécution
 
-    while pq:
-        current_cost, current_station, path_taken = heapq.heappop(pq)
+    stack = [(0, start_station, [], None)]  # création de la pile
+    min_distances = {start_station: 0}  # Dictionnaire des distances minimales, initialisées avec la station de départ
 
-        if current_station == end_station:  # On vérifie si on est arrivés
-            return [path_taken + [end_station], current_cost]
+    while stack:
+        current_cost, current_station, path_taken, previous_link = stack.pop(0)
 
-        for link in current_station.get_links():  # On vérifie pour chacun des liens de la station
+        # Si nous avons atteint la station de destination, renvoyer le chemin et le coût total
+        if current_station == end_station:
+            end_time = time.time()
+            return [path_taken + [end_station], current_cost], end_time - start_time
 
-            neighbor = link.get_end() if link.get_start() == current_station and (not link.oriented or link.oriented == (link.get_start, link.get_end)) else link.get_start() if (not link.oriented or link.oriented == (link.get_end, link.get_start)) else None
-            # On récupère la station voisine en prenant en compte l'orientation
+        # Parcourir chaque lien de la station actuelle
+        for link in current_station.get_links():
+            if previous_link and link == previous_link:
+                continue  # Ignorer le lien précédent
+
+            # Calcul du coût de transit
+            if not previous_link:
+                transit_cost = 0  # Pas de coût de transit pour la première itération
+            else:
+                # Rechercher le coût de transit dans les deux sens (link, previous_link) et (previous_link, link)
+                transit_cost = current_station.transits.get((link, previous_link), 0)
+                transit_cost = current_station.transits.get((previous_link, link), transit_cost)
+
+            # Détermination de la station voisine en fonction de l'orientation du lien
+            if (not link.orientation or link.orientation == (link.get_start(), link.get_end())) and link.get_start() == current_station:
+                neighbor = link.get_end()
+            elif (not link.orientation or link.orientation == (link.get_end(), link.get_start())) and link.get_end() == current_station:
+                neighbor = link.get_start()
+            else:
+                neighbor = None
 
             if neighbor:
-                new_cost = current_cost + link.get_time()  # On met à jour le coût
+                new_cost = current_cost + int(link.get_time()) + transit_cost  # Calcul du nouveau coût
 
                 if neighbor not in min_distances or new_cost < min_distances[neighbor]:
-                    # Il y a 2 cas : soit l'algorithme n'est pas encore passé par cette station, ainsi on l'ajoute au dictionnaire,
-                    # soit le nouveau coût est plus faible que le précédent, dans ce cas on met à jour le dictionnaire. Sinon on passe au prochain voisin.
-
+                    # Mettre à jour la distance minimale et ajout à la pile
                     min_distances[neighbor] = new_cost
-                    heapq.heappush(pq, (new_cost, neighbor, path_taken + [current_station]))
+                    stack.append((new_cost, neighbor, path_taken + [current_station], link))
 
     return None
 
 
-exit(0)
