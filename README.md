@@ -22,11 +22,11 @@ The project uses:
 
 ### 👥 Team Members
 
-- [P4ND4P0W3R - Paul HU](https://github.com/P4ND4P0W3R)
-- [RomainBilly0 - Romain BILLY](https://github.com/RomainBilly0)
-- [LouisGodfrin - Louis GODFRIN](https://github.com/LouisGodfrin)
-- [CTauziede - Clément TAUZIEDE](https://github.com/CTauziede)
-- [alexandre-bussiere - Alexandre BUSSIERE](https://github.com/alexandre-bussiere)
+- [P4ND4P0W3R](https://github.com/P4ND4P0W3R) - Paul HU
+- [RomainBilly0](https://github.com/RomainBilly0) - Romain BILLY
+- [LouisGodfrin](https://github.com/LouisGodfrin) - Louis GODFRIN
+- [CTauziede](https://github.com/CTauziede) - Clément TAUZIEDE
+- [alexandre-bussiere](https://github.com/alexandre-bussiere) - Alexandre BUSSIERE
 
 ## Getting Started
 
@@ -53,10 +53,10 @@ The project uses:
    cd Mastercamp-IT-2024
    ```
 
-3. **Setup and run the Backend:**
+> [!IMPORTANT]
+> Before running the backend, create a `.env` file in the `backend/` directory and add your database connection string as `DATABASE_URL=postgres://username:password@host:port/db_name`.
 
-   > [!IMPORTANT]
-   > Before running the backend, create a `.env` file in the `backend/` directory and add your database connection string as `DATABASE_URL=postgres://username:password@host:port/db_name`.
+3. **Setup and run the Backend:**
 
    ```bash
    python -m venv .venv  # Create a virtual environment
