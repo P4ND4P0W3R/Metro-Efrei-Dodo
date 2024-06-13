@@ -1,6 +1,6 @@
 import './App.css';
 
-function Form() {
+const Form = () => {
     return (
         <>
             <div className="App">
@@ -12,7 +12,6 @@ function Form() {
                     <label>
                         Lieu d'arrivée:  <input type="text" />
                     </label>
-                    <input type="submit" value="Rechercher" />
                 </form>
             </div>
         </>
