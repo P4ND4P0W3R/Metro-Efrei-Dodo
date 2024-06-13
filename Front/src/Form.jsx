@@ -3,15 +3,18 @@ import './App.css';
 const Form = () => {
     return (
         <>
-            <div className="App">
-                <form className="Main_Form">
-                    <h1>Indiquez votre destination</h1>
-                    <label>
+            <div id="Form">
+                <form id="Main_Form">
+                    <h1 class="TitleForm">Votre Destination</h1>
+                    <label class="lieu_de_depart">
                         Lieu de départ:  <input type="text" />
                     </label>
-                    <label>
-                        Lieu d'arrivée:  <input type="text" />
+                    <br />
+                    <label class="lieu_Arrivee">
+                        Lieu d'arrivée:  <br />
+                        <input type="text" />
                     </label>
+                    <input type="submit" id="submitButton" value="Rechercher" />
                 </form>
             </div>
         </>
