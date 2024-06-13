@@ -5,7 +5,7 @@ This project leverages real-time data from Ile-de-France Mobilités (IDFM) to pr
 ## About the project
 
 > [!NOTE]
-> This project falls within the scope of the **Solution Factory** for the 2024 IT Mastercamp during our third year curriculum at [EFREI](https://www.efrei.fr/), which is a French CS engineering school.
+> This project falls within the scope of the **Solution Factory** for the 2024 IT Mastercamp during our third year curriculum at [EFREI](https://www.efrei.fr/), which is a French CS engineering school. The subject is defined in the following repository: [ossef/Solution_Factory_IT](https://github.com/ossef/Solution_Factory_IT).
 
 ### ℹ️ Project Description
 
@@ -55,7 +55,8 @@ The project uses:
 
 3. **Setup and run the Backend:**
 
-   Before running the backend, create a `.env` file in the `backend` directory and add your database connection string as `DATABASE_URL=postgres://username:password@host:port/db_name`.
+   > [!IMPORTANT]
+   > Before running the backend, create a `.env` file in the `backend/` directory and add your database connection string as `DATABASE_URL=postgres://username:password@host:port/db_name`.
 
    ```bash
    python -m venv .venv  # Create a virtual environment
@@ -113,10 +114,6 @@ This project aims to provide a flexible and scalable foundation for a metro navi
 - **Multimodal routing:** Incorporate other modes of transportation (bus, tram, etc.) into the pathfinding.
 - **User accounts:** Allow users to save favorite routes, set journey preferences, and receive personalized notifications.
 - **Accessibility:** Highlight accessible stations and routes.
-
-## Contributions
-
-Contributions are welcome! Please feel free to submit pull requests or open issues.
 
 > [!IMPORTANT]
 >
