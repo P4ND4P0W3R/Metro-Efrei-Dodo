@@ -1,8 +1,8 @@
 import time
 import pandas as pd
 from tortoise import Tortoise
-from backend.app.db_config.models import Agency, Route, Trip, Stop, StopTime, Transfer, Pathway, StopExtension, Calendar, CalendarDate
-from backend.app.db_config.config import DATABASE_URL
+from app.db_config.models import Agency, Route, Trip, Stop, StopTime, Transfer, Pathway, StopExtension, Calendar, CalendarDate
+from app.db_config.config import DATABASE_URL
 import asyncio
 
 BATCH_SIZE = 1500
@@ -37,7 +37,6 @@ async def populate_model(model, file_path, key_field=None):
 
             if len(batch) >= BATCH_SIZE:
                 await bulk_insert(model, batch)
-                print("Batch inserted.")
                 batch.clear()
 
         if batch:
@@ -52,20 +51,20 @@ async def main():
 
     await Tortoise.init(
         db_url=DATABASE_URL,
-        modules={"models": ["models"]},
+        modules={"models": ["app.db_config.models"]},
     )
     await Tortoise.generate_schemas()
 
-    await populate_model(Agency, "./data/clean_gtfs/agency.txt", key_field='agency_id')
-    await populate_model(Calendar, "./data/clean_gtfs/calendar.txt", key_field='service_id')
-    await populate_model(CalendarDate, "./data/clean_gtfs/calendar_dates.txt")
-    await populate_model(Route, "./data/clean_gtfs/routes.txt", key_field='route_id')
-    await populate_model(Stop, "./data/clean_gtfs/stops.txt", key_field='stop_id')
-    await populate_model(Trip, "./data/clean_gtfs/trips.txt", key_field='trip_id')
-    await populate_model(StopTime, "./data/clean_gtfs/stop_times.txt")
-    await populate_model(Transfer, "./data/clean_gtfs/transfers.txt")
-    await populate_model(Pathway, "./data/clean_gtfs/pathways.txt", key_field='pathway_id')
-    await populate_model(StopExtension, "./data/clean_gtfs/stop_extensions.txt")
+    await populate_model(Agency, "./data/clean2_gtfs/agency.txt", key_field='agency_id')
+    await populate_model(Calendar, "./data/clean2_gtfs/calendar.txt", key_field='service_id')
+    await populate_model(CalendarDate, "./data/clean2_gtfs/calendar_dates.txt")
+    await populate_model(Route, "./data/clean2_gtfs/routes.txt", key_field='route_id')
+    await populate_model(Stop, "./data/clean2_gtfs/stops.txt", key_field='stop_id')
+    await populate_model(Trip, "./data/clean2_gtfs/trips.txt", key_field='trip_id')
+    await populate_model(StopTime, "./data/clean2_gtfs/stop_times.txt")
+    await populate_model(Transfer, "./data/clean2_gtfs/transfers.txt")
+    await populate_model(Pathway, "./data/clean2_gtfs/pathways.txt", key_field='pathway_id')
+    await populate_model(StopExtension, "./data/clean2_gtfs/stop_extensions.txt")
 
     await Tortoise.close_connections()
 
