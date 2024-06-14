@@ -30,6 +30,10 @@ def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     ratp_routes = routes[routes["agency_id"] == "IDFM:Operator_100"]
     ratp_routes.to_csv(f"{cleaned_gtfs_folder}/routes.txt", index=False)
 
+    # Filter routes.txt to keep only metro routes
+    ratp_routes = ratp_routes[ratp_routes["route_type"] == 1]
+    ratp_routes.to_csv(f"{cleaned_gtfs_folder}/routes.txt", index=False)
+
     # Filter trips.txt based on the remaining routes
     trips = pd.read_csv(f"{gtfs_folder}/trips.txt")
     trips = trips[trips["route_id"].isin(ratp_routes["route_id"])]
@@ -75,6 +79,6 @@ def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     print(f"GTFS data cleaned successfully. Files written to: {cleaned_gtfs_folder}")
 
 # Example usage
-gtfs_folder = "../data/raw_gtfs"
-cleaned_gtfs_folder = "../data/clean_gtfs"
+gtfs_folder = r"C:\Users\Paul\OneDrive - Efrei\Documents\EFREI\L3_2023-2024\S6\Mastercamp\Mastercamp-IT-2024\backend\data\raw_gtfs"
+cleaned_gtfs_folder = r"C:\Users\Paul\OneDrive - Efrei\Documents\EFREI\L3_2023-2024\S6\Mastercamp\Mastercamp-IT-2024\backend\data\clean2_gtfs"
 clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder)
