@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import time
 
 def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     """Cleans GTFS data to include only RATP data and writes to a new folder.
@@ -11,6 +12,7 @@ def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     Returns:
         None
     """
+    start_time = time.time()
 
     # Create the cleaned GTFS folder if it doesn't exist
     if not os.path.exists(cleaned_gtfs_folder):
@@ -77,6 +79,10 @@ def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     stop_extensions.to_csv(f"{cleaned_gtfs_folder}/stop_extensions.txt", index=False)
 
     print(f"GTFS data cleaned successfully. Files written to: {cleaned_gtfs_folder}")
+
+    end_time = time.time()  # Record the end time
+    total_time = end_time - start_time  # Calculate the total execution time
+    print(f"Total execution time: {total_time} seconds")
 
 # Example usage
 gtfs_folder = r"C:\Users\Paul\OneDrive - Efrei\Documents\EFREI\L3_2023-2024\S6\Mastercamp\Mastercamp-IT-2024\backend\data\raw_gtfs"
