@@ -1,14 +1,14 @@
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from tortoise.contrib.fastapi import register_tortoise
-from backend.app.db_config.models import Agency, Route, Trip, Stop, StopTime, Transfer, Pathway, StopExtension, Calendar, CalendarDate
-from backend.app.db_config.config import TORTOISE_ORM, register_tortoise_orm
+from db_config.models import Agency, Route, Trip, Stop, StopTime, Transfer, Pathway, StopExtension, Calendar, CalendarDate
+from db_config.config import TORTOISE_ORM, register_tortoise_orm
 from typing import List, Dict, Optional
 import datetime
 import heapq
-from backend.app.services.graph import *
-from backend.app.services.connectivity import *
-from backend.app.services.mst import *
+from services.graph import *
+from services.connectivity import *
+from services.mst import *
 
 app = FastAPI()
 

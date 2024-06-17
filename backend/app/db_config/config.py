@@ -12,7 +12,7 @@ TORTOISE_ORM = {
     },
     "apps": {
         "models": {
-            "models": ["models", "aerospike"],
+            "models": ["db_config.models", "aerospike"],
             "default_connection": "default",
         },
     },
@@ -25,7 +25,7 @@ def register_tortoise_orm(app, config):
     register_tortoise(
         app=app,  # Pass the FastAPI app instance here
         db_url=config["connections"]["default"],
-        modules={"models": ["models"]},
+        modules={"models": ["db_config.models"]},
         generate_schemas=True,
         add_exception_handlers=True,
     )
