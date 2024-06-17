@@ -60,7 +60,7 @@ The project uses:
 
    ```bash
    python -m venv .venv  # Create a virtual environment
-   .venv/bin/activate  # Activate the virtual environment
+   .venv/Scripts/activate  # Activate the virtual environment
    pip install -r ./backend/requirements.txt  # Install dependencies from requirements.txt
 
    python populate_database.py  # (OPTIONAL) Populate database with GTFS data (adjust paths if necessary)
