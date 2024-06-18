@@ -114,6 +114,88 @@ async def get_stops(stop_id: Optional[str] = Query(None)):
         for stop in stops
     ]
 
+@app.get("/barycenters")
+async def get_barycenters():
+    # Fetch all stops
+    stops = await Stop.all()
+    
+    # Group stops by parent_station
+    grouped_stops = {}
+    for stop in stops:
+        parent_station = stop.parent_station
+        if parent_station not in grouped_stops:
+            grouped_stops[parent_station] = []
+        grouped_stops[parent_station].append(stop)
+    
+    # Calculate the barycenter for each parent station
+    barycenters = []
+    for parent_station, stop_group in grouped_stops.items():
+        if not parent_station:  # Skip if there is no parent station
+            continue
+        total_lon = sum(stop.stop_lon for stop in stop_group)
+        total_lat = sum(stop.stop_lat for stop in stop_group)
+        stop_name = stop_group[0].stop_name
+        count = len(stop_group)
+        barycenter_lon = total_lon / count
+        barycenter_lat = total_lat / count
+        barycenters.append({
+            "parent_station": parent_station,
+            "stop_name": stop_name,
+            "barycenter_lon": barycenter_lon,
+            "barycenter_lat": barycenter_lat
+        })
+    
+    return barycenters
+
+# @app.get("/barycenters")
+# async def get_barycenters():
+#     # Fetch all stops
+#     stops = await Stop.all()
+    
+#     # Group stops by parent_station
+#     grouped_stops = {}
+#     for stop in stops:
+#         parent_station = stop.parent_station
+#         if parent_station not in grouped_stops:
+#             grouped_stops[parent_station] = []
+#         grouped_stops[parent_station].append(stop)
+    
+#     # Calculate the barycenter for each parent station
+#     barycenters = []
+#     for parent_station, stop_group in grouped_stops.items():
+#         if not parent_station:  # Skip if there is no parent station
+#             continue
+        
+#         total_lon = sum(stop.stop_lon for stop in stop_group)
+#         total_lat = sum(stop.stop_lat for stop in stop_group)
+#         stop_name = stop_group[0].stop_name
+#         count = len(stop_group)
+#         barycenter_lon = total_lon / count
+#         barycenter_lat = total_lat / count
+        
+#         # Retrieve route_color and route_text_color
+#         parent_stop = stop_group[0]
+#         stop_times = await StopTime.filter(stop=parent_stop.stop_id).prefetch_related('trip')
+#         if stop_times:
+#             trip = stop_times[0].trip
+#             route = await Route.get(route_id=trip.route_id)
+#             route_color = route.route_color
+#             route_text_color = route.route_text_color
+#         else:
+#             route_color = None
+#             route_text_color = None
+
+#         barycenters.append({
+#             "parent_station": parent_station,
+#             "stop_name": stop_name,
+#             "barycenter_lon": barycenter_lon,
+#             "barycenter_lat": barycenter_lat,
+#             "route_color": route_color,
+#             "route_text_color": route_text_color,
+#         })
+    
+#     return barycenters
+
 @app.get("/stop_times")
 async def get_stop_times(trip_id: Optional[str] = Query(None)):
     if trip_id:
