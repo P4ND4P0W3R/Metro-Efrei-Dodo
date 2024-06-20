@@ -1,12 +1,12 @@
 import Map from './Map';
-import Form from './Form';
+import FormState from './FormState';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 function App() {
   return (
     <>
-      <Form />
+      <FormState />
       <Map />
     </>
   );
