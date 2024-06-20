@@ -10,12 +10,20 @@ const FormState = () => {
     };
 
     return (
-        <div>
-            <button onClick={toggleDisplay}>
-                Toggle Form/Path
-            </button>
-            {dispResearch ? <Form /> : <Path />}
+        <div id="Form">
+            {dispResearch ? <>
+                <Form />
+                <button onClick={toggleDisplay}>
+                    Voir le trajet
+                </button>
+            </> :
+                <> <Path />
+                    <button onClick={toggleDisplay}>
+                        ⬅
+                    </button></>}
+
         </div>
+
     );
 };
 

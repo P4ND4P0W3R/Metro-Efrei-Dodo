@@ -1,6 +1,6 @@
 import './App.css';
 
-const Form = () => {
+function Form() {
     return (
         <>
             <div id="Form">
@@ -14,6 +14,7 @@ const Form = () => {
                         Lieu d'arrivée:  <br />
                         <input type="text" />
                     </label>
+                    <br />
                     <input type="submit" id="submitButton" value="Rechercher" />
                 </form>
             </div>
