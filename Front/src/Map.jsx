@@ -47,6 +47,8 @@ const MapComponent = () => {
     fetchStations();
   }, []);
 
+
+
   /* Creation of the path by Dijsktra for the layer */
 
   function fastestPath(objectPath) {
@@ -58,13 +60,15 @@ const MapComponent = () => {
     return pathTable;
   }
 
-  var path = fastestPath(stations);
+  // var path = fastestPath(ObjectPath);
+
+
 
   /* Creation of the list with every lignes for the layer */
   var lignes = [];
 
-  function pathLignes(Data) {
-    lignes = Data.map((stop) => [stop.barycenter_lon, stop.barycenter_lat]);
+  function pathLignes(stations) {
+    lignes = stations.map((stop) => [stop.barycenter_lon, stop.barycenter_lat]);
     return lignes;
   }
 
@@ -72,36 +76,19 @@ const MapComponent = () => {
 
   /* Regroupe all stations to display them */
 
-  function getStation(Data) {
-    var pathTable = [];
-    pathTable = Data.map((stop) => [
-      stop.stop_name,
-      stop.barycenter_lat,
-      stop.barycenter_lon,
-    ]);
-    return pathTable;
-  }
+  // function getStation(Data) {
+  //   var pathTable = [];
+  //   pathTable = Data.map((stop) => [
+  //     stop.stop_name,
+  //     stop.barycenter_lat,
+  //     stop.barycenter_lon,
+  //   ]);
+  //   return pathTable;
+  // }
 
-  var localisationStation = getStation(stations);
+  // var localisationStation = getStation(stations);
 
   /* Var for testing the Map */
-
-  var station_concorde = [48.8655981, 2.3212448];
-  var station_montparnasse = [48.842, 2.3203];
-
-  const ligne = [
-    [
-      [45.78042293651376, 4.805052980122775],
-      [45.77459195820043, 4.805615400117453],
-      [45.76648943348018, 4.805197244080732],
-      [45.75999759848578, 4.8263452847804444],
-    ],
-  ];
-
-  const polyline = [
-    [48.8655981, 2.3212448],
-    [48.842, 2.3203],
-  ];
 
   const center = [48.866667, 2.333333];
 
@@ -120,43 +107,42 @@ const MapComponent = () => {
       <LayersControl position="topright">
         <LayersControl.Overlay name="Layer with fastest path">
           <LayerGroup>
-            <Polyline pathOptions={{ color: "purple" }} positions={path} />
+            {/* <Polyline pathOptions={{ color: "purple" }} positions={path} /> */}
           </LayerGroup>
         </LayersControl.Overlay>
 
-        <LayersControl.Overlay
-          checked
-          name="Layer with fastest path and stations"
-        >
+        <LayersControl.Overlay name="Layer with fastest path and stations">
           <LayerGroup>
             {stations.map((stop) => (
               <CircleMarker
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "red" }}
-                radius={10}
+                radius={5}
               >
-                <Tooltip permanent>
+                <Popup permanent>
                   <span>{stop.stop_name}</span>
-                </Tooltip>
+                </Popup>
               </CircleMarker>
             ))}
+            {/* <Polyline positions={path} /> */}
 
-            <Polyline positions={path} />
           </LayerGroup>
         </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="Layer with just stations">
+        <LayersControl.Overlay name="Layer with just stations">
           <LayerGroup>
             {stations.map((stop) => (
               <CircleMarker
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "green" }}
-                radius={10}
+                radius={5}
+                eventHandlers={{
+                  mouseover: (event) => event.target.openPopup(),}}
               >
-                <Tooltip permanent>
+                <Popup>
                   <span>{stop.stop_name}</span>
-                </Tooltip>
+                </Popup>
               </CircleMarker>
             ))}
           </LayerGroup>
