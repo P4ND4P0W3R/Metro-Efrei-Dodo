@@ -120,7 +120,7 @@ const Path = () => {
         }
     ];
     function FirstStation() {
-        return <div>{path[0].stop_name}</div>
+        return <div id="PathList">{path[0].stop_name}</div>
     }
     function MiddleStation() {
         const Middlepath = path.slice(1, -1);
@@ -135,7 +135,7 @@ const Path = () => {
     }
     function LastStation() {
         const LastStation = path[path.length - 1]
-        return <div>{LastStation.stop_name}</div>
+        return <div id="PathList">{LastStation.stop_name}</div>
     }
     function Ligne() {
 
