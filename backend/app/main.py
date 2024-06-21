@@ -9,8 +9,21 @@ import heapq
 from services.graph import *
 from services.connectivity import *
 from services.mst import *
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",  # Your frontend origin
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],  # Specify the HTTP methods your frontend uses
+    allow_headers=["*"],  # Or specify specific headers if needed
+)
 
 @app.get("/")
 async def root():
