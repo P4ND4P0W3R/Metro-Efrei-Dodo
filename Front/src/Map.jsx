@@ -33,6 +33,11 @@ L.Icon.Default.mergeOptions({
 
 const MapComponent = () => {
   const [stations, setStations] = useState([]);
+  const [formData, setFormData] = useState({
+    stopName: '',
+    lat: '',
+    lon: '',
+  });
 
   useEffect(() => {
     const fetchStations = async () => {
@@ -47,7 +52,39 @@ const MapComponent = () => {
     fetchStations();
   }, []);
 
+  /* permet d'envoyer les infos de la station dans le form en cliquant dessus */
+  
+  const handleMarkerClick = (stop) => {
+    const newFormData = {
+      stopName: stop.stop_name,
+      lat: stop.barycenter_lat,
+      lon: stop.barycenter_lon,
+    };
+    setFormData(newFormData);
+    localStorage.setItem('formData', JSON.stringify(newFormData));
+    console.log("Storing formData in localStorage from Map:", newFormData);
+  };
 
+  // /* --------------------------------------------------------------------- */
+
+  // /* permet de gérer le hover des poppup*/
+
+  // const RenderIcons = () => {
+  //   const markerRef = useRef();
+  
+  //   const eventHandlers = useMemo(
+  //     () => ({
+  //       mouseover() {
+  //         if (markerRef) markerRef.current.openPopup();
+  //       },
+  //       mouseout() {
+  //         if (markerRef) markerRef.current.closePopup();
+  //       }
+  //     }),
+  //     []
+  //   );
+  // }
+  // /* --------------------------------------------------------------------- */
 
   /* Creation of the path by Dijsktra for the layer */
 
@@ -63,7 +100,6 @@ const MapComponent = () => {
   // var path = fastestPath(ObjectPath);
 
 
-
   /* Creation of the list with every lignes for the layer */
   var lignes = [];
 
@@ -74,19 +110,6 @@ const MapComponent = () => {
 
   var subway_lignes = pathLignes(stations);
 
-  /* Regroupe all stations to display them */
-
-  // function getStation(Data) {
-  //   var pathTable = [];
-  //   pathTable = Data.map((stop) => [
-  //     stop.stop_name,
-  //     stop.barycenter_lat,
-  //     stop.barycenter_lon,
-  //   ]);
-  //   return pathTable;
-  // }
-
-  // var localisationStation = getStation(stations);
 
   /* Var for testing the Map */
 
@@ -119,8 +142,10 @@ const MapComponent = () => {
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "red" }}
                 radius={5}
+                // ref={RenderIcons}
+                // eventHandlers={eventHandlers}
               >
-                <Popup permanent>
+                <Popup>
                   <span>{stop.stop_name}</span>
                 </Popup>
               </CircleMarker>
@@ -137,8 +162,11 @@ const MapComponent = () => {
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "green" }}
                 radius={5}
+                // ref={RenderIcons}
                 eventHandlers={{
-                  mouseover: (event) => event.target.openPopup(),}}
+                  mouseover: (event) => event.target.openPopup(),
+                  click: () => handleMarkerClick(stop),
+                }}
               >
                 <Popup>
                   <span>{stop.stop_name}</span>
