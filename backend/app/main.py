@@ -12,9 +12,7 @@ from services.mst import *
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
-
 app = FastAPI()
-executor = ThreadPoolExecutor()
 
 origins = [
     "http://localhost:5173",  # Your frontend origin
