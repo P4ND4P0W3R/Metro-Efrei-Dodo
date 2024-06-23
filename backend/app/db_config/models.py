@@ -99,6 +99,12 @@ class StopTime(Model):
 
     class Meta:
         table = "stop_times"
+        indexes = [
+            ("trip_id", "stop_sequence"),
+            ("trip_id",),
+            ("stop_id",),
+            ("stop_sequence",), 
+        ]
 
 class Transfer(Model):
     from_stop = fields.ForeignKeyField("models.Stop", related_name="from_transfers")
@@ -133,3 +139,24 @@ class StopExtension(Model):
 
     class Meta:
         table = "stop_extensions"
+
+class TripStop(Model):
+    trip = fields.ForeignKeyField("models.Trip", related_name="trip_stops", on_delete=fields.CASCADE)
+    stop = fields.ForeignKeyField("models.Stop", related_name="trip_stops", on_delete=fields.CASCADE)
+    stop_sequence = fields.IntField()
+
+    class Meta:
+        table = "trip_stop"
+        indexes = [
+            ("trip_id", "stop_id"), 
+            ("stop_sequence",)
+        ]
+class RouteStop(Model):
+    route = fields.ForeignKeyField("models.Route", related_name="route_stops", on_delete=fields.CASCADE)
+    stop = fields.ForeignKeyField("models.Stop", related_name="route_stops", on_delete=fields.CASCADE)
+
+    class Meta:
+        table = "route_stop"
+        indexes = [
+            ("route_id", "stop_id")
+        ]
