@@ -10,12 +10,23 @@ from services.graph import *
 from services.connectivity import *
 from services.mst import *
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
-from tortoise.contrib.fastapi import HTTPNotFoundError
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 executor = ThreadPoolExecutor()
+
+origins = [
+    "http://localhost:5173",  # Your frontend origin
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],  # Specify the HTTP methods your frontend uses
+    allow_headers=["*"],  # Or specify specific headers if needed
+)
 
 @app.get("/")
 async def root():
