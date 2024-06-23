@@ -33,16 +33,14 @@ L.Icon.Default.mergeOptions({
 
 const MapComponent = () => {
   const [stations, setStations] = useState([]);
-  const [formData, setFormData] = useState({
-    stopName: '',
-    lat: '',
-    lon: '',
-  });
+  // const [formData, setFormData] = useState({
+  //   stopName: '',
+  // });
 
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch("http://localhost:8000/barycenters");
+        const response = await fetch("http://localhost:8000/stations");
         const data = await response.json();
         setStations(data);
       } catch (error) {
@@ -57,10 +55,8 @@ const MapComponent = () => {
   const handleMarkerClick = (stop) => {
     const newFormData = {
       stopName: stop.stop_name,
-      lat: stop.barycenter_lat,
-      lon: stop.barycenter_lon,
     };
-    setFormData(newFormData);
+    // setFormData(newFormData);
     localStorage.setItem('formData', JSON.stringify(newFormData));
     console.log("Storing formData in localStorage from Map:", newFormData);
   };
@@ -103,8 +99,8 @@ const MapComponent = () => {
   /* Creation of the list with every lignes for the layer */
   var lignes = [];
 
-  function pathLignes(stations) {
-    lignes = stations.map((stop) => [stop.barycenter_lon, stop.barycenter_lat]);
+  function pathLignes(station) {
+    lignes = station.map((stop) => [stop.barycenter_lon, stop.barycenter_lat]);
     return lignes;
   }
 
@@ -128,11 +124,6 @@ const MapComponent = () => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <LayersControl position="topright">
-        <LayersControl.Overlay name="Layer with fastest path">
-          <LayerGroup>
-            {/* <Polyline pathOptions={{ color: "purple" }} positions={path} /> */}
-          </LayerGroup>
-        </LayersControl.Overlay>
 
         <LayersControl.Overlay name="Layer with fastest path and stations">
           <LayerGroup>
@@ -142,8 +133,6 @@ const MapComponent = () => {
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "red" }}
                 radius={5}
-                // ref={RenderIcons}
-                // eventHandlers={eventHandlers}
               >
                 <Popup>
                   <span>{stop.stop_name}</span>
@@ -154,7 +143,7 @@ const MapComponent = () => {
 
           </LayerGroup>
         </LayersControl.Overlay>
-        <LayersControl.Overlay name="Layer with just stations">
+        <LayersControl.Overlay name="Layer with all lignes and stations">
           <LayerGroup>
             {stations.map((stop) => (
               <CircleMarker
@@ -162,7 +151,6 @@ const MapComponent = () => {
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "green" }}
                 radius={5}
-                // ref={RenderIcons}
                 eventHandlers={{
                   mouseover: (event) => event.target.openPopup(),
                   click: () => handleMarkerClick(stop),
