@@ -37,13 +37,13 @@ function Form() {
                     <h1 className="TitleForm">Votre Destination</h1>
                     <label className="lieu_de_depart">
                         Lieu de départ:
-                        <AutoComplet />
                     </label>
+                    <AutoComplet />
                     <br />
                     <label className="lieu_Arrivee">
-                        Lieu d'arrivée:
-                        <AutoComplet />
+                        Lieu d'arrivé:
                     </label>
+                    <AutoComplet />
                     <br />
                     <input type="submit" id="submitButton" value="Rechercher" />
                 </form>

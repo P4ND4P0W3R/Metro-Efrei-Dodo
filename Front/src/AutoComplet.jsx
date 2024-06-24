@@ -36,6 +36,39 @@ const AutoComplet = () => {
         label: station.stop_name,
     }));
 
+
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            backgroundColor: 'white',
+            borderColor: 'black',
+            minHeight: '20px',
+            fontSize: '12px',
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? 'white' : state.isFocused ? 'white' : null,
+            color: state.isSelected ? 'black' : 'black',
+            fontSize: '10px',
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: 'gray',
+            fontSize: '12px',
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: 'white',
+            border: '1px solid black',
+        }),
+        menuList: (provided) => ({
+            ...provided,
+            maxHeight: '50px',
+        }),
+    };
+
+
+
     return (
         <CreatableSelect
             value={options.find(option => option.value === formData.stopName)}
@@ -43,6 +76,7 @@ const AutoComplet = () => {
             options={options}
             placeholder="Selectionner une station"
             isClearable
+            styles={customStyles}
         />
     );
 };
