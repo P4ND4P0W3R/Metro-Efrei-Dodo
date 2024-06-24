@@ -51,13 +51,13 @@ const MapComponent = () => {
   }, []);
 
   /* permet d'envoyer les infos de la station dans le form en cliquant dessus */
-  
+
   const handleMarkerClick = (stop) => {
     const newFormData = {
       stopName: stop.stop_name,
     };
     // setFormData(newFormData);
-    localStorage.setItem('formData', JSON.stringify(newFormData));
+    sessionStorage.setItem('formDataStation', JSON.stringify(newFormData));
     console.log("Storing formData in localStorage from Map:", newFormData);
   };
 
@@ -67,7 +67,7 @@ const MapComponent = () => {
 
   // const RenderIcons = () => {
   //   const markerRef = useRef();
-  
+
   //   const eventHandlers = useMemo(
   //     () => ({
   //       mouseover() {
