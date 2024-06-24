@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
-
 const AutoComplet = () => {
     const [formData, setformData] = useState({
         stopName: ''
     });
 
-
     const [stations, setStations] = useState([]);
+
+    const injectValue = (value) => {
+        setformData((prevData) => ({
+            ...prevData,
+            stopName: value,
+        }));
+    };
 
     useEffect(() => {
         const fetchStations = async () => {
@@ -23,19 +28,35 @@ const AutoComplet = () => {
         fetchStations();
     }, []);
 
-    const handleSelectChange = (selectedOption) => {
-        setformData((prevData) => ({
-            ...prevData,
-            stopName: selectedOption ? selectedOption.value : '',
-        }));
+    useEffect(() => {
+        const checkStorageChange = () => {
+            const storedData = sessionStorage.getItem('formDataStation');
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+                setformData(parsedData);
+                injectValue(parsedData.stopName);
+            }
+        };
 
+        // Check for storage change every second
+        const intervalId = setInterval(checkStorageChange, 100);
+
+        // Cleanup interval on component unmount
+        return () => clearInterval(intervalId);
+    }, []); // Empty array ensures this effect runs once on mount and sets up the interval
+
+    const handleSelectChange = (selectedOption) => {
+        const newFormData = {
+            stopName: selectedOption ? selectedOption.value : '',
+        };
+        setformData(newFormData);
+        sessionStorage.setItem('formDataStation', JSON.stringify(newFormData));
     };
 
     const options = stations.map(station => ({
         value: station.stop_name,
         label: station.stop_name,
     }));
-
 
     const customStyles = {
         control: (provided) => ({
@@ -67,17 +88,17 @@ const AutoComplet = () => {
         }),
     };
 
-
-
     return (
-        <CreatableSelect
-            value={options.find(option => option.value === formData.stopName)}
-            onChange={handleSelectChange}
-            options={options}
-            placeholder="Selectionner une station"
-            isClearable
-            styles={customStyles}
-        />
+        <>
+            <CreatableSelect
+                value={options.find(option => option.value === formData.stopName)}
+                onChange={handleSelectChange}
+                options={options}
+                placeholder="Selectionner une station"
+                isClearable
+                styles={customStyles}
+            />
+        </>
     );
 };
 
