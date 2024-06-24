@@ -323,22 +323,13 @@ async def get_calendar_dates(service_id: Optional[str] = Query(None), date: Opti
     ]
 
 
-@app.get("/get_stop_times/{date_str}/{time_str}/{end_or_start}")
-async def fetch_stop_times_and_trips(date_str: str, time_str: str, end_or_start: str) -> List[Dict[str, Any]]:
+@app.get("/get_stop_times/{date_str}/{time_str}")
+async def fetch_stop_times_and_trips(date_str: str, time_str: str) -> List[Dict[str, Any]]:
     try:
-        if end_or_start not in ["start", "end"]:
-            raise HTTPException(status_code=400, detail="Invalide end or start format.")
-
-        if end_or_start and end_or_start == "start":
-            end_time_delta = int(time_str[0:2]) + 3
-            end_time_str = str(end_time_delta) + time_str[2:]
-        else:
-            end_time_str = time_str
-            end_time_delta = int(time_str[0:2]) - 3
-            time_str = str(end_time_delta) + time_str[2:]
+        end_time_delta = int(time_str[0:2]) + 3
+        end_time_str = str(end_time_delta) + time_str[2:]
 
         # Filtrer les StopTime après un certain horaire et les Trip disponibles à une date donnée
-
         stop_times = await StopTime.filter(
             (Q(arrival_time__gte=time_str) & Q(arrival_time__lte=end_time_str)) |
             (Q(departure_time__gte=time_str) & Q(departure_time__lte=end_time_str)),
