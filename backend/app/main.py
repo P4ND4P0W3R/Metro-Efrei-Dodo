@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from tortoise.contrib.fastapi import register_tortoise
-from tortoise.expressions import Q
 from db_config.models import *
 from db_config.config import TORTOISE_ORM, register_tortoise_orm
-from typing import List, Dict, Optional, Any, re
-from datetime import datetime, timedelta
+from typing import List, Dict, Optional
+import datetime
 import heapq
 from services.graph import *
 from services.connectivity import *
@@ -27,15 +26,12 @@ app.add_middleware(
     allow_headers=["*"],  # Or specify specific headers if needed
 )
 
-
 @app.get("/")
 async def root():
     return {"message": "Hello, World!"}
 
-
 # Register TortoiseORM with FastAPI
 register_tortoise_orm(app, TORTOISE_ORM)
-
 
 # -----------------------------------------------------------------------------
 #                       DATABASE QUERIES
@@ -58,17 +54,16 @@ async def get_agencies():
         for agency in agencies
     ]
 
-
 @app.get("/routes")
 async def get_routes(agency_id: Optional[str] = Query(None)):
     if agency_id:
         routes = await Route.filter(agency__agency_id=agency_id).prefetch_related("agency").all()
     else:
-        routes = await Route.all().prefetch_related("agency")
+        routes = await Route.all().prefetch_related("agency") 
     return [
         {
             "route_id": route.route_id,
-            "agency_id": route.agency.agency_id,
+            "agency_id": route.agency.agency_id, 
             "route_short_name": route.route_short_name,
             "route_long_name": route.route_long_name,
             "route_desc": route.route_desc,
@@ -80,7 +75,6 @@ async def get_routes(agency_id: Optional[str] = Query(None)):
         }
         for route in routes
     ]
-
 
 @app.get("/trips")
 async def get_trips(route_id: Optional[str] = Query(None), service_id: Optional[str] = Query(None)):
@@ -108,7 +102,6 @@ async def get_trips(route_id: Optional[str] = Query(None), service_id: Optional[
         for trip in trips
     ]
 
-
 @app.get("/stops")
 async def get_stops(stop_id: Optional[str] = Query(None)):
     if stop_id:
@@ -134,7 +127,6 @@ async def get_stops(stop_id: Optional[str] = Query(None)):
         }
         for stop in stops
     ]
-
 
 @app.get("/stations")
 async def get_stations():
@@ -165,16 +157,6 @@ async def get_stations():
         # Efficiently get distinct route IDs using prefetch_related data
         route_ids = set(route_stop.route.route_id for stop in stop_group for route_stop in stop.route_stops)
 
-        # Read stations.json and get route_ids_with_sequences
-        with open("stations.json", "r") as f:
-            stations_data = json.load(f)
-            for station_data in stations_data:
-                if station_data["parent_station"] == parent_station:
-                    route_ids_with_sequences = station_data["route_ids_with_sequences"]
-                    break
-            else:
-                route_ids_with_sequences = []
-
         stations.append(
             {
                 "parent_station": parent_station,
@@ -182,12 +164,10 @@ async def get_stations():
                 "barycenter_lon": barycenter_lon,
                 "barycenter_lat": barycenter_lat,
                 "route_ids": list(route_ids),
-                "route_ids_with_sequences": route_ids_with_sequences
             }
         )
 
     return stations
-
 
 @app.get("/stops/{stop_id}/metro_lines")
 async def get_metro_lines_for_stop(stop_id: str):
@@ -201,12 +181,10 @@ async def get_metro_lines_for_stop(stop_id: str):
     ]
     return metro_lines
 
-
 @app.get("/stop_times")
 async def get_stop_times(trip_id: Optional[str] = Query(None)):
     if trip_id:
-        stop_times = await StopTime.filter(trip__trip_id=trip_id).prefetch_related("trip", "stop").order_by(
-            "stop_sequence").all()
+        stop_times = await StopTime.filter(trip__trip_id=trip_id).prefetch_related("trip", "stop").order_by("stop_sequence").all()
     else:
         stop_times = await StopTime.all().prefetch_related("trip", "stop")
     return [
@@ -220,15 +198,12 @@ async def get_stop_times(trip_id: Optional[str] = Query(None)):
         for stop_time in stop_times
     ]
 
-
 @app.get("/transfers")
 async def get_transfers(from_stop_id: Optional[str] = Query(None), to_stop_id: Optional[str] = Query(None)):
     if from_stop_id and to_stop_id:
-        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id,
-                                          to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
+        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id, to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
     elif from_stop_id:
-        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id).prefetch_related("from_stop",
-                                                                                            "to_stop").all()
+        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id).prefetch_related("from_stop", "to_stop").all()
     elif to_stop_id:
         transfers = await Transfer.filter(to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
     else:
@@ -243,12 +218,10 @@ async def get_transfers(from_stop_id: Optional[str] = Query(None), to_stop_id: O
         for transfer in transfers
     ]
 
-
 @app.get("/pathways")
 async def get_pathways(from_stop_id: Optional[str] = Query(None), to_stop_id: Optional[str] = Query(None)):
     if from_stop_id and to_stop_id:
-        pathways = await Pathway.filter(from_stop__stop_id=from_stop_id, to_stop__stop_id=to_stop_id).prefetch_related(
-            "from_stop", "to_stop").all()
+        pathways = await Pathway.filter(from_stop__stop_id=from_stop_id, to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
     elif from_stop_id:
         pathways = await Pathway.filter(from_stop__stop_id=from_stop_id).prefetch_related("from_stop", "to_stop").all()
     elif to_stop_id:
@@ -273,7 +246,6 @@ async def get_pathways(from_stop_id: Optional[str] = Query(None), to_stop_id: Op
         for pathway in pathways
     ]
 
-
 @app.get("/stop_extensions")
 async def get_stop_extensions(object_id: Optional[str] = Query(None)):
     if object_id:
@@ -288,7 +260,6 @@ async def get_stop_extensions(object_id: Optional[str] = Query(None)):
         }
         for stop_extension in stop_extensions
     ]
-
 
 @app.get("/calendar")
 async def get_calendar(service_id: Optional[str] = Query(None)):
@@ -312,7 +283,6 @@ async def get_calendar(service_id: Optional[str] = Query(None)):
         for cal in calendar
     ]
 
-
 @app.get("/calendar_dates")
 async def get_calendar_dates(service_id: Optional[str] = Query(None), date: Optional[str] = Query(None)):
     if service_id and date:
@@ -332,39 +302,6 @@ async def get_calendar_dates(service_id: Optional[str] = Query(None), date: Opti
         for calendar_date in calendar_dates
     ]
 
-
-@app.get("/get_stop_times/{date_str}/{time_str}")
-async def fetch_stop_times_and_trips(date_str: str, time_str: str) -> List[Dict[str, Any]]:
-    try:
-        end_time_delta = int(time_str[0:2]) + 3
-        end_time_str = str(end_time_delta) + time_str[2:]
-
-        # Filtrer les StopTime après un certain horaire et les Trip disponibles à une date donnée
-        stop_times = await StopTime.filter(
-            (Q(arrival_time__gte=time_str) & Q(arrival_time__lte=end_time_str)) |
-            (Q(departure_time__gte=time_str) & Q(departure_time__lte=end_time_str)),
-            trip__service__start_date__lte=date_str,
-            trip__service__end_date__gte=date_str
-        ).prefetch_related('trip__route').all()
-
-        # Structurer les résultats
-        results = []
-        for stop_time in stop_times:
-            results.append({
-                "trip_id": stop_time.trip.trip_id,
-                "route_short_name": stop_time.trip.route.route_short_name,
-                "arrival_time": stop_time.arrival_time,
-                "departure_time": stop_time.departure_time
-            })
-
-        return results
-
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date or time format. Use YYYYMMDD for date and HH:MM:SS for time.")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/stop_times/{trip_id}")
 async def get_stop_times_for_trip(trip_id: str):
     """Get stop times for a specific trip ID.
@@ -376,8 +313,7 @@ async def get_stop_times_for_trip(trip_id: str):
         A JSONResponse containing the stop times for the specified trip.
     """
 
-    stop_times = await StopTime.filter(trip__trip_id=trip_id).prefetch_related("trip", "stop").order_by(
-        "stop_sequence").all()
+    stop_times = await StopTime.filter(trip__trip_id=trip_id).prefetch_related("trip", "stop").order_by("stop_sequence").all()
 
     return [
         {
@@ -396,12 +332,11 @@ async def get_stop_times_for_trip(trip_id: str):
         for stop_time in stop_times
     ]
 
-
 # -----------------------------------------------------------------------------
 #                       GRAPH ALGORITHMS
 # -----------------------------------------------------------------------------
 
-async def get_metro_graph(date: datetime.datetime):
+async def get_metro_graph(date: datetime.date):
     """Constructs a weighted graph representing the metro network for a given date.
 
     Args:
@@ -419,9 +354,7 @@ async def get_metro_graph(date: datetime.datetime):
     # 2. Get all trips for metro routes on the specified date
     trips = []
     for route in metro_routes:
-        trips_for_route = await Trip.filter(route=route, service__start_date__lte=date.strftime("%Y%m%d"),
-                                            service__end_date__gte=date.strftime("%Y%m%d")).prefetch_related(
-            "stop").all()
+        trips_for_route = await Trip.filter(route=route, service__start_date__lte=date.strftime("%Y%m%d"), service__end_date__gte=date.strftime("%Y%m%d")).prefetch_related("stop").all()
         trips.extend(trips_for_route)
 
     # 3. Get all stop times for the trips
@@ -448,8 +381,7 @@ async def get_metro_graph(date: datetime.datetime):
             graph[current_stop_id][next_stop_id] = travel_time
     return graph
 
-
-async def dijkstra(graph: Dict, start: str, end: str, date: datetime.datetime):
+async def dijkstra(graph: Dict, start: str, end: str, date: datetime.date):
     """Computes the shortest path between two stations using Dijkstra's algorithm.
 
     Args:
@@ -466,38 +398,37 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime.datetime):
 
     distances = {stop: float("inf") for stop in graph}
     distances[start] = 0
-
+    
     # Priority queue (using heapq) to store (distance, stop) pairs
     queue = [(0, start)]
-
+    
     predecessors = {}  # Track predecessors for path reconstruction
-
+    
     while queue:
         current_distance, current_stop = heapq.heappop(queue)
-
+        
         if current_stop == end:
             break
-
+        
         for neighbor, travel_time in graph[current_stop].items():
             distance_to_neighbor = current_distance + travel_time
             if distance_to_neighbor < distances[neighbor]:
                 distances[neighbor] = distance_to_neighbor
                 predecessors[neighbor] = current_stop
                 heapq.heappush(queue, (distance_to_neighbor, neighbor))
-
+    
     shortest_path = []
     total_time = distances[end]
     current_stop = end
-
+    
     while current_stop:
         shortest_path.append(current_stop)
         current_stop = predecessors.get(current_stop)
-
+    
     shortest_path.reverse()
     return {"shortest_path": shortest_path, "total_time": total_time}
 
-
-async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.datetime):
+async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.date):
     """Get a path between two stops using a specific metro line
 
     Args:
@@ -510,7 +441,7 @@ async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.
             - shortest_path: The list of station IDs forming the path
             - total_time: The total travel time for the path.
     """
-
+    
     # 1. Find all trips that pass both stops
     matching_trips = []
     stop_times = await StopTime.filter(stop__stop_id__in=[start_stop_id, end_stop_id]).order_by("stop_sequence").all()
@@ -533,14 +464,14 @@ async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.
     for trip_id in matching_trips:
         stop_times_for_trip = await StopTime.filter(trip__trip_id=trip_id).order_by("stop_sequence").all()
         path_stop_times.extend(stop_times_for_trip)
-
+    
     # 5. Build the path based on stop_times
     path = []
     for stop_time in path_stop_times:
         if stop_time.stop.stop_id == start_stop_id:
             path = [start_stop_id]
             break
-
+    
     path_found = False
     for stop_time in path_stop_times:
         if stop_time.stop.stop_id == end_stop_id:
@@ -568,8 +499,7 @@ async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.
 
     return {"shortest_path": path, "total_time": total_time}
 
-
-async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime.datetime):
+async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime.date):
     """Get a path between two stops considering transfers.
 
     Args:
@@ -587,7 +517,6 @@ async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: da
     result = await dijkstra(graph, start_stop_id, end_stop_id, date)
     return result
 
-
 @app.get("/shortest_path")
 async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
     """Finds the shortest path between two stops.
@@ -602,12 +531,11 @@ async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
     """
 
     try:
-        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj)
         return JSONResponse(content=result)
     except ValueError:
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD."}, status_code=400)
-
 
 # -----------------------------------------------------------------------------
 #                       NETWORK CONNECTIVITY CHECK
@@ -636,7 +564,6 @@ async def check_network_connectivity(date: datetime.date):
     await dfs(start_stop_id)
     return len(visited) == len(graph)
 
-
 @app.get("/connectivity")
 async def check_connectivity(date: str):
     """Endpoint to check network connectivity.
@@ -654,7 +581,6 @@ async def check_connectivity(date: str):
         return JSONResponse(content={"connected": connected})
     except ValueError:
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD."}, status_code=400)
-
 
 # -----------------------------------------------------------------------------
 #                       MINIMUM SPANNING TREE (Kruskal)
@@ -682,7 +608,6 @@ class DisjointSet:
         else:
             self.parent[root_v] = root_u
             self.rank[root_u] += 1
-
 
 async def kruskal(graph: Dict, date: datetime.date):
     """Computes the minimum spanning tree of the metro network using Kruskal's algorithm.
@@ -714,7 +639,6 @@ async def kruskal(graph: Dict, date: datetime.date):
 
     return mst, total_weight
 
-
 @app.get("/minimum_spanning_tree")
 async def get_minimum_spanning_tree(date: str):
     """Endpoint to compute the minimum spanning tree.
@@ -733,7 +657,6 @@ async def get_minimum_spanning_tree(date: str):
         return JSONResponse(content={"mst": mst, "total_weight": total_weight})
     except ValueError:
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD."}, status_code=400)
-
 
 # -----------------------------------------------------------------------------
 #                       RUN THE APP
