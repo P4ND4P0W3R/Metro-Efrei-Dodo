@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import JSONResponse
 from tortoise.contrib.fastapi import register_tortoise
@@ -166,7 +167,7 @@ async def get_stations():
         route_ids = set(route_stop.route.route_id for stop in stop_group for route_stop in stop.route_stops)
 
         # Read stations.json and get route_ids_with_sequences
-        with open("stations.json", "r") as f:
+        with open("./utils/stations.json", "r") as f:
             stations_data = json.load(f)
             for station_data in stations_data:
                 if station_data["parent_station"] == parent_station:
