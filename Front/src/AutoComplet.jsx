@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
-const AutoComplet = () => {
-    const [formData, setformData] = useState({
+const AutoComplet = ({ id, onChange }) => {
+    const [formData, setFormData] = useState({
         stopName: ''
     });
 
     const [stations, setStations] = useState([]);
 
     const injectValue = (value) => {
-        setformData((prevData) => ({
+        setFormData((prevData) => ({
             ...prevData,
             stopName: value,
         }));
@@ -30,10 +30,10 @@ const AutoComplet = () => {
 
     useEffect(() => {
         const checkStorageChange = () => {
-            const storedData = sessionStorage.getItem('formDataStation');
+            const storedData = sessionStorage.getItem(`formDataStation_${id}`);
             if (storedData) {
                 const parsedData = JSON.parse(storedData);
-                setformData(parsedData);
+                setFormData(parsedData);
                 injectValue(parsedData.stopName);
             }
         };
@@ -43,14 +43,17 @@ const AutoComplet = () => {
 
         // Cleanup interval on component unmount
         return () => clearInterval(intervalId);
-    }, []); // Empty array ensures this effect runs once on mount and sets up the interval
+    }, [id]);
 
     const handleSelectChange = (selectedOption) => {
         const newFormData = {
             stopName: selectedOption ? selectedOption.value : '',
         };
-        setformData(newFormData);
-        sessionStorage.setItem('formDataStation', JSON.stringify(newFormData));
+        setFormData(newFormData);
+        sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(newFormData));
+        if (onChange) {
+            onChange(newFormData.stopName);
+        }
     };
 
     const options = stations.map(station => ({
@@ -94,7 +97,7 @@ const AutoComplet = () => {
                 value={options.find(option => option.value === formData.stopName)}
                 onChange={handleSelectChange}
                 options={options}
-                placeholder="Selectionner une station"
+                placeholder="Sélectionner une station"
                 isClearable
                 styles={customStyles}
             />
