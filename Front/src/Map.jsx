@@ -29,7 +29,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
-/* Call of the backend by API */
 
 const MapComponent = () => {
   const [stations, setStations] = useState([]);
@@ -37,6 +36,7 @@ const MapComponent = () => {
   //   stopName: '',
   // });
 
+  /* Call of the backend by API */
   useEffect(() => {
     const fetchStations = async () => {
       try {
@@ -50,8 +50,27 @@ const MapComponent = () => {
     fetchStations();
   }, []);
 
-  /* permet d'envoyer les infos de la station dans le form en cliquant dessus */
+  const [routes, setRoutes] = useState([]);
+  // const [formData, setFormData] = useState({
+  //   stopName: '',
+  // });
 
+  useEffect(() => {
+    const fetchRoutes = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/routes");
+        const data = await response.json();
+        setRoutes(data);
+        
+      } catch (error) {
+        console.error("Error fetching stations:", error);
+      }
+    };
+    fetchRoutes();
+  }, []);
+
+  /* permet d'envoyer les infos de la station dans le form en cliquant dessus */
+  
   const handleMarkerClick = (stop) => {
     const newFormData = {
       stopName: stop.stop_name,
@@ -67,7 +86,7 @@ const MapComponent = () => {
 
   // const RenderIcons = () => {
   //   const markerRef = useRef();
-
+  
   //   const eventHandlers = useMemo(
   //     () => ({
   //       mouseover() {
@@ -93,19 +112,87 @@ const MapComponent = () => {
     return pathTable;
   }
 
-  // var path = fastestPath(ObjectPath);
+  var path = fastestPath(stations);
+
+  var pathes = [[2.37698689849219,48.8908500522752],[2.24352563133847,48.8337005447186],[2.34779496818712,48.8938152613519],[2.32267315791628,48.8664072192036],[2.34346786469835,48.8311430914311]]
+
 
 
   /* Creation of the list with every lignes for the layer */
-  var lignes = [];
-
-  function pathLignes(station) {
-    lignes = station.map((stop) => [stop.barycenter_lon, stop.barycenter_lat]);
+  function pathLignes(stations, routes) {
+    const lignes = {};
+  
+    // Initialize each route with an empty array
+    routes.forEach(route => {
+      lignes[route.route_id] = [];
+    });
+  
+    // Populate the lignes object with the coordinates of the stops
+    stations.forEach(stop => {
+      const routeIds = stop.route_ids;
+  
+      if (routeIds && routeIds.length > 0) {
+        routeIds.forEach(routeId => {
+          if (lignes[routeId]) {
+            lignes[routeId].push([stop.barycenter_lat, stop.barycenter_lon]);
+          } else {
+            console.log(`Route ID ${routeId} is not defined in routes`);
+          }
+        });
+      } else {
+        console.log("Stop without route_ids:", stop);
+      }
+    });
+  
+    // Function to calculate the distance between two points
+    function distance(point1, point2) {
+      const [lat1, lon1] = point1;
+      const [lat2, lon2] = point2;
+      return Math.sqrt(Math.pow(lat1 - lat2, 2) + Math.pow(lon1 - lon2, 2));
+    }
+  
+    // Sort the coordinates in each route using the Nearest Neighbor algorithm
+    Object.keys(lignes).forEach(routeId => {
+      const points = lignes[routeId];
+      const sortedPoints = [];
+      const visited = new Set();
+  
+      // Start with the first point
+      let currentPoint = points[0];
+      sortedPoints.push(currentPoint);
+      visited.add(currentPoint);
+  
+      while (sortedPoints.length < points.length) {
+        let nearestPoint = null;
+        let nearestDistance = Infinity;
+  
+        // Find the nearest unvisited point
+        points.forEach(point => {
+          if (!visited.has(point)) {
+            const dist = distance(currentPoint, point);
+            if (dist < nearestDistance) {
+              nearestDistance = dist;
+              nearestPoint = point;
+            }
+          }
+        });
+  
+        // Add the nearest point to the sorted list and mark it as visited
+        if (nearestPoint) {
+          sortedPoints.push(nearestPoint);
+          visited.add(nearestPoint);
+          currentPoint = nearestPoint;
+        }
+      }
+  
+      // Update the line with the sorted points
+      lignes[routeId] = sortedPoints;
+    });
+  
     return lignes;
   }
-
-  var subway_lignes = pathLignes(stations);
-
+  const subway_lines = pathLignes(stations, routes);
+  console.log("Subway Lines:", subway_lines);
 
   /* Var for testing the Map */
 
@@ -126,20 +213,25 @@ const MapComponent = () => {
       <LayersControl position="topright">
 
         <LayersControl.Overlay name="Layer with fastest path and stations">
-          <LayerGroup>
+        <LayerGroup>
             {stations.map((stop) => (
               <CircleMarker
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
-                pathOptions={{ fillColor: "red" }}
-                radius={5}
+                pathOptions={{ fillColor: "green" }}
+                radius={6}
+                eventHandlers={{
+                  mouseover: (event) => event.target.openPopup(),
+                  click: () => handleMarkerClick(stop),
+                }}
               >
                 <Popup>
                   <span>{stop.stop_name}</span>
                 </Popup>
               </CircleMarker>
+              
             ))}
-            {/* <Polyline positions={path} /> */}
+            <Polyline positions={pathes} /> 
 
           </LayerGroup>
         </LayersControl.Overlay>
@@ -150,7 +242,7 @@ const MapComponent = () => {
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: "green" }}
-                radius={5}
+                radius={6}
                 eventHandlers={{
                   mouseover: (event) => event.target.openPopup(),
                   click: () => handleMarkerClick(stop),
@@ -160,7 +252,26 @@ const MapComponent = () => {
                   <span>{stop.stop_name}</span>
                 </Popup>
               </CircleMarker>
+              
             ))}
+
+            {Object.entries(subway_lines).map(([routeId, path]) => {
+              const route = routes.find(route => route.route_id === routeId);
+              const routeColor = route ? `#${route.route_color}` : '#FFFFFF'; // Ensure the color is prefixed with #
+              return path.map((point, index) => {
+                if (index < path.length - 1) {
+                  return (
+                    <Polyline
+                      key={`${routeId}-${index}`}
+                      positions={[point, path[index + 1]]}
+                      pathOptions={{ color: routeColor }}
+                    />
+                  );
+                }
+                return null;
+              });
+            })}            
+
           </LayerGroup>
         </LayersControl.Overlay>
       </LayersControl>
