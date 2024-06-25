@@ -43,7 +43,7 @@ const AutoComplet = ({ id, onChange }) => {
 
         // Cleanup interval on component unmount
         return () => clearInterval(intervalId);
-    }, [id]);
+    }, []);
 
     const handleSelectChange = (selectedOption) => {
         const newFormData = {
