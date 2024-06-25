@@ -418,6 +418,8 @@ async def get_metro_graph(date: str, time: str):
 
     stops_times = {}
     trips_times = {}
+    trips = {}
+    routes = {}
     for stop_time in stop_times:
         if not stops_times.get(stop_time.stop_id):
             stops_times[stop_time.stop_id] = []
@@ -425,11 +427,9 @@ async def get_metro_graph(date: str, time: str):
 
         if not trips_times.get(stop_time.trip_id):
             trips_times[stop_time.trip_id] = []
+
         trips_times[stop_time.trip_id].append(stop_time)
 
-    trips = {}
-    routes = {}
-    for stop_time in stop_times:
         trips[stop_time.trip_id] = stop_time.trip
         routes[stop_time.trip.route_id] = stop_time.trip.route
     stations = await get_stations()
@@ -442,7 +442,6 @@ async def get_metro_graph(date: str, time: str):
 
     system = {"stations": stations_stations, "trips": trips, "routes": routes, "stop_times": stops_times,
               "trips_times": trips_times, "stop_stations": stop_stations}
-
     return system
 
 
@@ -468,71 +467,114 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
     if not (start_station and end_station):
         raise HTTPException(status_code=404, detail="Station not found")
 
-    queue = [(None, start_station, None, {"stations": {}, "stops": {}, "final_date": date})]
-
+    queue = [(None, start_station, None, {"stations": {start_station["parent_station"]: start_station}, "stops": {}, "final_date": date})]  # initialisation à la station de départ et à la date départ
     predecessors_stops = {}
-
     output = {}
 
     while queue:
         current_trip, current_station, current_stop, current_path = queue.pop(0)
-        current_path["stations"][current_station["parent_station"]] = current_station
 
-        if current_station == end_station:  # condition "finale"
+        if current_station["parent_station"] == end_station["parent_station"]:  # condition "finale"
+            print("reached : ", current_path["final_date"])
             if not output or output["final_date"] > current_path["final_date"]:
+                print("updated : ", current_path)
                 output = current_path
 
-        for stop in current_station["stops"]:
-            if stop == current_stop and stop.stop_name != current_stop["stop_name"]:
-                next_time = next((st for st in graph["stop_times"].get(stop.stop_id) if st.trip == current_trip), None)
+        # print(current_station["stops"])
+        for stop in current_station["stops"]:  # On vérifie chacun des arrêts de la station
+            # print("Checking ", stop.stop_id)
+
+            if current_stop and stop.stop_id == current_stop.stop_id:  # cas sans changement de métro (donc pas de changement d'arrêt)
+
+                next_time = next((st for st in graph["stop_times"].get(stop.stop_id) if st.trip == current_trip), None)  # recherche du stop time à cet arrêt du même métro
                 if not next_time:
-                    raise HTTPException(status_code=404, detail="Stop not found")
+                    raise HTTPException(status_code=404, detail="Stop not found")  # Il devrait exister normalement...
 
-                trip_times = graph["trips"].get(current_trip["trip_id"])
-                new_trip = current_trip
+                trip_times = graph["trips_times"].get(current_trip.trip_id)  # On recherche les arrêts du métro
+                new_trip = current_trip  # On ne change pas de trip
+                departure_date = get_date_from_stop_time_departure(next_time, date)  # On récupère l'heure de départ du train
 
-            elif not current_stop or stop != current_stop:
+            elif not current_stop or (stop.stop_id != current_stop.stop_id and stop.stop_id not in current_path["stops"]):  # cas avec changement de métro (et donc d'arrêt) ou de première itération sans aller à un arrêt déjà utilisé auparavant
                 next_time = None
-                departure_date = None
-                for stop_time in graph["stop_times"].get(stop.stop_id):
-                    temp_departure_date = get_date_from_stop_time_departure(stop_time, date)
-                    if not next_time or (departure_date and departure_date >= temp_departure_date >= current_path["final_date"]):
-                        next_time = stop_time
-                        departure_date = temp_departure_date
+                departure_date = datetime.datetime(2500, 1, 1, 0, 0, 0)  # une date très éloignée pour faire référence lors d'une comparaisons
 
-                if next_time.stop in current_path["stops"] or (predecessors_stops.get(next_time.stop) and predecessors_stops[next_time.stop] < departure_date):
+                times = graph["stop_times"].get(stop.stop_id)  # On récupère les heures de passages à cet arrêt
+                if not times:  # cas ou il n'y en a pas -> pas possible d'aller plus loin par là
                     continue
 
-                predecessors_stops[next_time.stop] = next_time
-                new_trip = graph["trips"].get(next_time.trip_id)
-                trip_times = graph["trips"].get(new_trip.trip_id)
+                # On récupère l'heure de départ du premier passage de train après la date actuelle
+                for stop_time2 in times:
+                    temp_departure_date = get_date_from_stop_time_departure(stop_time2, date)
+                    if departure_date and departure_date >= temp_departure_date > current_path["final_date"]:
+                        next_time = stop_time2
+                        departure_date = datetime.datetime.combine(temp_departure_date.date(), temp_departure_date.time())
 
-            else:
+                # Si on n'a pas pu en récupérer ou si l'arrêt a déjà été atteint avec un meilleur temps on passe au suivant
+                if not next_time or (predecessors_stops.get(next_time.stop_id) and predecessors_stops[next_time.stop_id] < departure_date):
+                    continue
+
+                predecessors_stops[next_time.stop] = get_date_from_stop_time_arrival(next_time, date)  # On met à jour la meilleure date pour cet arrêt
+                new_trip = graph["trips"].get(next_time.trip_id)  # On récupère le métro
+                trip_times = graph["trips_times"].get(new_trip.trip_id)  # On récupère ses arrêts
+
+            else:  # le reste
+                print("No stop found")
                 continue
 
-            for stop_time in trip_times:
-                if ((new_trip.direction_id == '1' and int(stop_time["stop_sequence"]) - 1 == int(next_time.stop_sequence)) or
-                    (new_trip.direction_id == '0' and int(next_time.stop_sequence) != 0 and int(stop_time["stop_sequence"]) + 1 == int(next_time.stop_sequence))) and \
-                        (not predecessors_stops.get(stop_time["stop"]) or (predecessors_stops.get(stop_time["stop"]) > get_date_from_stop_time_departure(stop_time, date))):
+            arrival_time = datetime.datetime(2500, 1, 1, 0, 0, 0)
+            new_stop_time = None
+            for stop_time in trip_times:  # On va récupérer le prochain arrêt du métro, il sera à la date la plus proche de la date de départ de l'arrêt actuel, c'est l'équivalent d'une fonction MIN
+                new_arrival_date = get_date_from_stop_time_arrival(stop_time, date)
+                if new_arrival_date > departure_date:  # Il faut que cette date se situe après dans le temps
+                    if ((predecessors_stops.get(stop_time.stop) and predecessors_stops.get(stop_time.stop) > new_arrival_date)
+                            or not predecessors_stops.get(stop_time.stop)):  # Il faut que cette date soit meilleure que celle enregistré pour ce nouvel arrêt, s'il y en a déjà une
+                        if new_arrival_date < arrival_time:  # On récupère cette date si elle est plus proche que toutes celles parcourues jusque là
+                            arrival_time = new_arrival_date
+                            new_stop_time = stop_time
 
-                    if current_path["stops"].get(stop_time["stop"]):
-                        continue
+            # if not new_stop_time:  # cela veut dire que nous sommes déjà à un terminus pour ce train, il n'y a pas d'intérêt à continuer
+                # print("no other stop from stop")
 
-                    new_station = graph["stations"].get(graph["stop_stations"][stop_time["stop"]])
-                    if not new_station or current_path["stations"].get(new_station["parent_station"]):
-                        continue
+            if new_stop_time:
 
-                    current_path["stations"][new_station["parent_station"]] = new_station
+                # print("New stop from stop : ", new_stop_time.stop_id)
 
-                    new_stop = next((stop2 for stop2 in new_station["stops"] if stop2.stop_id == stop_time["stop"]), None)
-                    current_path["stops"][new_stop["stop_id"]] = [stop_time["arrival_time"], stop_time["departure_time"]]
+                if current_path["stops"].get(new_stop_time.stop_id):  # On vérifie si l'arrêt n'a pas déjà été parcouru dans ce voyage
+                    # print("stop in path")
+                    continue
 
-                    queue.append((new_trip, new_station, new_stop, current_path.copy()))
+                new_station = graph["stations"].get(graph["stop_stations"][new_stop_time.stop_id])  # On récupère la nouvelle station atteinte
 
-    final_date = output.get("final_date")
-    if final_date:
-        final_time = final_date - date
-        print(final_date, final_time)
+                if not new_station or current_path["stations"].get(new_station["parent_station"]):  # On vérifie si elle n'a pas déjà été parcourue dans ce voyage
+                    # print("station in path")
+                    continue
+
+                # On met à jour la meilleure date de passage pour cet arrêt (la nouvelle obtenue).
+                predecessors_stops[new_stop_time.stop_id] = arrival_time
+
+                # On récupère le chemin parcouru jusque là
+                new_path = current_path.copy()
+
+                # On ajoute la station au chemin
+                new_path["stations"][new_station["parent_station"]] = new_station
+
+                # On récupère le nouvel arrêt atteint
+                new_stop = next((stop2 for stop2 in new_station["stops"] if stop2.stop_id == new_stop_time.stop_id), None)
+
+                # On ajoute cet arrêt au chemin avec l'heure d'arrivée et de départ possible à cet arrêt
+                new_path["stops"][new_stop.stop_id] = [new_stop_time.arrival_time, new_stop_time.departure_time]
+
+                # On ajoute aussi l'arrêt précédent, utile si on a fait un changement de métro
+                # La valeur restera la même pour l'arrêt si on n'a pas fait de changement de toutes façons (merci les dictionnaires)
+                if not new_path["stops"].get(next_time.stop_id):
+                    new_path["stops"][next_time.stop_id] = [next_time.arrival_time, next_time.departure_time]
+
+                # enfin on met à jour la date actuelle à celle de notre arrivée dans la nouvelle station
+                new_path["final_date"] = arrival_time
+
+                # et voila... pourquoi ça marche pas ????
+                queue.append((new_trip, new_station, new_stop, new_path))
+                # print("added top path :\nStops : ", new_path["stops"])
 
     return output
 
@@ -668,11 +710,9 @@ async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
     try:
         date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj)
-        return JSONResponse(content=result)
+        return result
     except ValueError:
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD HH:MM:SS."}, status_code=400)
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 # -----------------------------------------------------------------------------
