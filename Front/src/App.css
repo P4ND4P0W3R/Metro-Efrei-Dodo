@@ -25,12 +25,15 @@
 
 #Main_Form {
   padding-top: 30px;
+  padding-right: 25px;
   color: rgb(255, 255, 255);
   overflow: hidden
 }
 
 .TitleForm {
+  text-align: center;
   font-size: 40px;
+  margin-bottom: 20px;
 }
 
 .lieu_de_depart {
@@ -96,6 +99,57 @@ input[type="text"] {
   background-color: #0056b3;
 }
 
+.option-container
+{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+#Options
+/* {
+  display:flex;
+  align-items: center;
+  justify-content: center;
+} */
+
+.time-picker-container {
+  color:#ffffff;
+  margin-top: 10px;
+}
+
+
+.react-time-picker__wrapper {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  margin-left: 10%;
+  margin-top:10%
+}
+
+.react-time-picker__inputGroup
+{
+  display:flex;
+  align-items: baseline;
+  justify-content: center;
+  width: 20px;
+}
+.react-time-picker__inputGroup__divider
+{
+  padding: 3%
+}
+
+.react-time-picker__inputGroup__input {
+  font-size: 16px;
+  padding: 2px;
+  width: 20px;
+}
+
+
+.react-time-picker__inputGroup__input--hasLeadingZero {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
 
 @media screen and (max-width : 1100px) {
   .TitleForm {
