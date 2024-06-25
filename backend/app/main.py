@@ -85,8 +85,7 @@ async def get_routes(agency_id: Optional[str] = Query(None)):
 @app.get("/trips")
 async def get_trips(route_id: Optional[str] = Query(None), service_id: Optional[str] = Query(None)):
     if route_id and service_id:
-        trips = await Trip.filter(route__route_id=route_id, service__service_id=service_id).prefetch_related("route",
-                                                                                                             "service").all()
+        trips = await Trip.filter(route__route_id=route_id, service__service_id=service_id).prefetch_related("route", "service").all()
     elif route_id:
         trips = await Trip.filter(route__route_id=route_id).prefetch_related("route", "service").all()
     elif service_id:
@@ -166,6 +165,16 @@ async def get_stations():
         # Efficiently get distinct route IDs using prefetch_related data
         route_ids = set(route_stop.route.route_id for stop in stop_group for route_stop in stop.route_stops)
 
+        # Read stations.json and get route_ids_with_sequences
+        with open("stations.json", "r") as f:
+            stations_data = json.load(f)
+            for station_data in stations_data:
+                if station_data["parent_station"] == parent_station:
+                    route_ids_with_sequences = station_data["route_ids_with_sequences"]
+                    break
+            else:
+                route_ids_with_sequences = []
+
         stations.append(
             {
                 "parent_station": parent_station,
@@ -173,6 +182,7 @@ async def get_stations():
                 "barycenter_lon": barycenter_lon,
                 "barycenter_lat": barycenter_lat,
                 "route_ids": list(route_ids),
+                "route_ids_with_sequences": route_ids_with_sequences
             }
         )
 
