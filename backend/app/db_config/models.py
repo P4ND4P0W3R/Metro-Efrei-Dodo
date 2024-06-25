@@ -154,9 +154,11 @@ class TripStop(Model):
 class RouteStop(Model):
     route = fields.ForeignKeyField("models.Route", related_name="route_stops", on_delete=fields.CASCADE)
     stop = fields.ForeignKeyField("models.Stop", related_name="route_stops", on_delete=fields.CASCADE)
+    stop_sequence = fields.IntField()
 
     class Meta:
         table = "route_stop"
         indexes = [
-            ("route_id", "stop_id")
+            ("route_id", "stop_id"),
+            ("stop_sequence",)
         ]
