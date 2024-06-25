@@ -547,7 +547,7 @@ def get_date_from_stop_time_departure(next_time, date):
         hour -= 24
         date += timedelta(days=1)
 
-    return datetime.combine(date.date(), datetime.time(hour, minute, second))
+    return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
 
 
 def get_date_from_stop_time_arrival(next_time, date):
@@ -560,7 +560,7 @@ def get_date_from_stop_time_arrival(next_time, date):
         hour -= 24
         date += timedelta(days=1)
 
-    return datetime.combine(date.date(), datetime.time(hour, minute, second))
+    return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
 
 
 async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.datetime):
@@ -635,7 +635,7 @@ async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.
     return {"shortest_path": path, "total_time": total_time}
 
 
-async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime.datetime):
+async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime):
     """Get a path between two stops considering transfers.
 
     Args:
@@ -671,6 +671,8 @@ async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
         return JSONResponse(content=result)
     except ValueError:
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD HH:MM:SS."}, status_code=400)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 # -----------------------------------------------------------------------------
