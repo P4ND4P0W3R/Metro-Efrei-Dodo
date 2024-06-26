@@ -40,10 +40,8 @@ const Formulaire = () => {
         const storedFormData = localStorage.getItem('formData');
         if (storedFormData) {
             setFormData(JSON.parse(storedFormData));
-            console.log("Tout dans le storedFormData qui prend les info de formData");
-            console.log(storedFormData);
         } else {
-            console.log("Rien dans le storedFormData qui prend les info de formData");
+            console.error("Rien dans le storedFormData qui prend les info de formData");
         }
     }, []);
 
@@ -90,8 +88,7 @@ const Formulaire = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        localStorage.setItem('formData', JSON.stringify(formData));
-        Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
+        Dikstra();
     };
 
     return (
@@ -148,7 +145,7 @@ const Formulaire = () => {
                 </div>
                 <br/>
                 <div className = "SubmitButton">
-                    <input type="submit" id="submitButton" value="Rechercher" onSubmit={handleSubmit}/>
+                    <input type="submit" id="submitButton" value="Rechercher" onClick={handleSubmit}/>
                 </div>
             </form>
         </div>

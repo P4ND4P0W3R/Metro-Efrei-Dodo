@@ -13,12 +13,12 @@ const FormState = () => {
         <div id="Form">
             {dispResearch ? <>
                 <Form />
-                <button onClick={toggleDisplay}>
+                <button id = "TrajetToggle" onClick={toggleDisplay}>
                     Voir le trajet
                 </button>
             </> :
                 <> <Path />
-                    <button onClick={toggleDisplay}>
+                    <button id = "TrajetToggle" onClick={toggleDisplay}>
                         ⬅
                     </button></>}
 
