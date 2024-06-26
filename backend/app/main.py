@@ -13,6 +13,7 @@ from services.connectivity import *
 from services.mst import *
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
+import copy
 
 app = FastAPI()
 
@@ -445,7 +446,7 @@ async def get_metro_graph(date: str, time: str):
     return system
 
 
-async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
+def dijkstra(graph: Dict, start: str, end: str, date: datetime):
     """Computes the shortest path between two stations using Dijkstra's algorithm.
 
     Args:
@@ -473,16 +474,25 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
 
     while queue:
         current_trip, current_station, current_stop, current_path = queue.pop(0)
+        print("Current_path : ", current_path["stops"])
+
+        if current_stop:
+            print("at : ", current_stop.stop_name, "  id : ", current_stop.stop_id)
+
+        if output and output["final_date"] < current_path["final_date"]:  # Si on a déjà pu atteindre le point d'arrivée par un autre chemin, on vérifie si celui-ci vaut toujours le coup d'être poursuivi.
+            print("abort, too late")
+            continue
 
         if current_station["parent_station"] == end_station["parent_station"]:  # condition "finale"
             print("reached : ", current_path["final_date"])
             if not output or output["final_date"] > current_path["final_date"]:
-                print("updated : ", current_path)
+                print("updated : ", current_path["stops"])
                 output = current_path
+                continue
 
         # print(current_station["stops"])
         for stop in current_station["stops"]:  # On vérifie chacun des arrêts de la station
-            # print("Checking ", stop.stop_id)
+            print("Checking ", stop.stop_id, "   Name : ", stop.stop_name)
 
             if current_stop and stop.stop_id == current_stop.stop_id:  # cas sans changement de métro (donc pas de changement d'arrêt)
 
@@ -521,13 +531,16 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
                 print("No stop found")
                 continue
 
+            if not new_trip or not next_time:
+                continue
+
             arrival_time = datetime.datetime(2500, 1, 1, 0, 0, 0)
             new_stop_time = None
             for stop_time in trip_times:  # On va récupérer le prochain arrêt du métro, il sera à la date la plus proche de la date de départ de l'arrêt actuel, c'est l'équivalent d'une fonction MIN
                 new_arrival_date = get_date_from_stop_time_arrival(stop_time, date)
                 if new_arrival_date > departure_date:  # Il faut que cette date se situe après dans le temps
                     if ((predecessors_stops.get(stop_time.stop) and predecessors_stops.get(stop_time.stop) > new_arrival_date)
-                            or not predecessors_stops.get(stop_time.stop)):  # Il faut que cette date soit meilleure que celle enregistré pour ce nouvel arrêt, s'il y en a déjà une
+                            or not predecessors_stops.get(stop_time.stop)):  # Il faut que cette date soit meilleure que celle enregistrée pour ce nouvel arrêt, s'il y en a déjà une
                         if new_arrival_date < arrival_time:  # On récupère cette date si elle est plus proche que toutes celles parcourues jusque là
                             arrival_time = new_arrival_date
                             new_stop_time = stop_time
@@ -545,7 +558,7 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
 
                 new_station = graph["stations"].get(graph["stop_stations"][new_stop_time.stop_id])  # On récupère la nouvelle station atteinte
 
-                if not new_station or current_path["stations"].get(new_station["parent_station"]):  # On vérifie si elle n'a pas déjà été parcourue dans ce voyage
+                if current_path["stations"].get(new_station["parent_station"]):  # On vérifie si elle n'a pas déjà été parcourue dans ce voyage
                     # print("station in path")
                     continue
 
@@ -553,7 +566,7 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
                 predecessors_stops[new_stop_time.stop_id] = arrival_time
 
                 # On récupère le chemin parcouru jusque là
-                new_path = current_path.copy()
+                new_path = copy.deepcopy(current_path)
 
                 # On ajoute la station au chemin
                 new_path["stations"][new_station["parent_station"]] = new_station
@@ -574,7 +587,8 @@ async def dijkstra(graph: Dict, start: str, end: str, date: datetime):
 
                 # et voila... pourquoi ça marche pas ????
                 queue.append((new_trip, new_station, new_stop, new_path))
-                # print("added top path :\nStops : ", new_path["stops"])
+                print("current_path :\nStops : ", current_path["stops"])
+                print("added top path :\nStops : ", new_path["stops"])
 
     return output
 
@@ -605,78 +619,6 @@ def get_date_from_stop_time_arrival(next_time, date):
     return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
 
 
-async def get_path_by_line(start_stop_id: str, end_stop_id: str, date: datetime.datetime):
-    """Get a path between two stops using a specific metro line
-
-    Args:
-        start_stop_id: ID of the starting station
-        end_stop_id: ID of the destination station
-        date: The date for the trip
-
-    Returns:
-        A dictionary containing:
-            - shortest_path: The list of station IDs forming the path
-            - total_time: The total travel time for the path.
-    """
-
-    # 1. Find all trips that pass both stops
-    matching_trips = []
-    stop_times = await StopTime.filter(stop__stop_id__in=[start_stop_id, end_stop_id]).order_by("stop_sequence").all()
-
-    # 2. Create a dict with trip_id as key and a list of stops as value
-    trip_stop_dict = {}
-    for stop_time in stop_times:
-        trip_id = stop_time.trip.trip_id
-        if trip_id not in trip_stop_dict:
-            trip_stop_dict[trip_id] = []
-        trip_stop_dict[trip_id].append(stop_time.stop.stop_id)
-
-    # 3. Check which trip contains both stations
-    for trip_id, stops_for_trip in trip_stop_dict.items():
-        if start_stop_id in stops_for_trip and end_stop_id in stops_for_trip:
-            matching_trips.append(trip_id)
-
-    # 4. Get all stop times for the matching trips
-    path_stop_times = []
-    for trip_id in matching_trips:
-        stop_times_for_trip = await StopTime.filter(trip__trip_id=trip_id).order_by("stop_sequence").all()
-        path_stop_times.extend(stop_times_for_trip)
-
-    # 5. Build the path based on stop_times
-    path = []
-    for stop_time in path_stop_times:
-        if stop_time.stop.stop_id == start_stop_id:
-            path = [start_stop_id]
-            break
-
-    path_found = False
-    for stop_time in path_stop_times:
-        if stop_time.stop.stop_id == end_stop_id:
-            path_found = True
-            break
-        if stop_time.stop.stop_id in path:
-            continue
-        path.append(stop_time.stop.stop_id)
-
-    if not path_found:
-        return {"shortest_path": [], "total_time": 0}
-
-    # 6. Calculate total time
-    total_time = 0
-    for i in range(len(path) - 1):
-        current_stop_id = path[i]
-        next_stop_id = path[i + 1]
-
-        # Calculate time difference
-        time_format = "%H:%M:%S"
-        arrival_time = datetime.datetime.strptime(path_stop_times[i + 1].arrival_time, time_format)
-        departure_time = datetime.datetime.strptime(path_stop_times[i].departure_time, time_format)
-        travel_time = (arrival_time - departure_time).total_seconds()
-        total_time += travel_time
-
-    return {"shortest_path": path, "total_time": total_time}
-
-
 async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime):
     """Get a path between two stops considering transfers.
 
@@ -690,7 +632,7 @@ async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: da
     """
 
     graph = await get_metro_graph(date.date().strftime("%Y%m%d"), date.time().strftime("%H%M%S"))
-    result = await dijkstra(graph, start_stop_id, end_stop_id, date)
+    result = dijkstra(graph, start_stop_id, end_stop_id, date)
     return result
 
 
