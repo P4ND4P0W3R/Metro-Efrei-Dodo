@@ -35,6 +35,9 @@ const AutoComplet = ({ id, onChange }) => {
                 const parsedData = JSON.parse(storedData);
                 setFormData(parsedData);
                 injectValue(parsedData.stopName);
+                if (onChange) {
+                    onChange(parsedData.stopName); //Envoy a Form quand il y a une modif
+                }
             }
         };
 
@@ -52,6 +55,7 @@ const AutoComplet = ({ id, onChange }) => {
         setFormData(newFormData);
         sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(newFormData));
         if (onChange) {
+            console.log(newFormData.stopName)
             onChange(newFormData.stopName);
         }
     };
