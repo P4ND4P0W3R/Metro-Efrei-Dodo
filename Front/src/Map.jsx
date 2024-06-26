@@ -310,7 +310,7 @@ const MapComponent = () => {
             })}
           </LayerGroup>
         </LayersControl.Overlay>
-        <LayersControl.Overlay checked>
+        <LayersControl.Overlay checked name=" All stations">
           <LayerGroup >
           {stations.map(stop => (
               <CircleMarker
