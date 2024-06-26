@@ -31,6 +31,7 @@ L.Icon.Default.mergeOptions({
 
 const MapComponent = () => {
   const [stations, setStations] = useState([]);
+  const [OnFirst, setOnFirst] = useState([true]);
   // const [formData, setFormData] = useState({
   //   stopName: '',
   // });
@@ -71,7 +72,16 @@ const MapComponent = () => {
     const newFormData = {
       stopName: stop.stop_name,
     };
-    sessionStorage.setItem('formDataStation', JSON.stringify(newFormData));
+    if (OnFirst) {
+      sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
+      console.log("Map send to 1:" + newFormData.stopName + OnFirst)
+      setOnFirst(false)
+    }
+    else {
+      sessionStorage.setItem('formDataStation_AutoComplet2', JSON.stringify(newFormData));
+      console.log("Map send to 2:" + newFormData.stopName + OnFirst)
+      setOnFirst(true)
+    }
     console.log('Storing formData in localStorage from Map:', newFormData);
   };
 
@@ -187,6 +197,7 @@ const MapComponent = () => {
               >
                 <Popup>
                   <span>{stop.stop_name}</span>
+
                 </Popup>
               </CircleMarker>
             ))}
