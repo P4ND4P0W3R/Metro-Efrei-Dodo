@@ -236,15 +236,17 @@ async def get_transfers(from_stop_id: Optional[str] = Query(None), to_stop_id: O
         transfers = await Transfer.filter(to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
     else:
         transfers = await Transfer.all().prefetch_related("from_stop", "to_stop")
-    return [
-        {
+
+    result = {}
+    for transfer in transfers:
+        result[transfer.from_stop.stop_id] = {
             "from_stop_id": transfer.from_stop.stop_id,
             "to_stop_id": transfer.to_stop.stop_id,
             "transfer_type": transfer.transfer_type,
             "min_transfer_time": transfer.min_transfer_time,
         }
-        for transfer in transfers
-    ]
+
+    return result
 
 
 @app.get("/pathways")
@@ -373,6 +375,7 @@ async def fetch_stop_times_and_trips(date_str: str, time_str: str):
     try:
         end_time_delta = int(time_str[0:2]) + 2
         end_time_str = str(end_time_delta) + time_str[2:]
+        print("init fetch")
 
         # Filtrer les StopTime après un certain horaire et les Trip disponibles à une date donnée
         stop_times = await StopTime.all().filter(
@@ -381,6 +384,8 @@ async def fetch_stop_times_and_trips(date_str: str, time_str: str):
             trip__service__start_date__lte=date_str,
             trip__service__end_date__gte=date_str
         ).prefetch_related('trip__route')
+
+        print("fetched data")
 
         return stop_times
 
@@ -434,6 +439,7 @@ async def get_metro_graph(date: str, time: str):
         trips[stop_time.trip_id] = stop_time.trip
         routes[stop_time.trip.route_id] = stop_time.trip.route
     stations = await get_stations()
+    transfers = await get_transfers()
     stop_stations = {}
     stations_stations = {}
     for station in stations:
@@ -443,6 +449,8 @@ async def get_metro_graph(date: str, time: str):
 
     system = {"stations": stations_stations, "trips": trips, "routes": routes, "stop_times": stops_times,
               "trips_times": trips_times, "stop_stations": stop_stations}
+
+    print("built graph")
     return system
 
 
@@ -474,25 +482,22 @@ def dijkstra(graph: Dict, start: str, end: str, date: datetime):
 
     while queue:
         current_trip, current_station, current_stop, current_path = queue.pop(0)
-        print("Current_path : ", current_path["stops"])
-
-        if current_stop:
-            print("at : ", current_stop.stop_name, "  id : ", current_stop.stop_id)
+        # print("Current_path : ", current_path["stops"])
 
         if output and output["final_date"] < current_path["final_date"]:  # Si on a déjà pu atteindre le point d'arrivée par un autre chemin, on vérifie si celui-ci vaut toujours le coup d'être poursuivi.
-            print("abort, too late")
+            # print("abort, too late")
             continue
 
         if current_station["parent_station"] == end_station["parent_station"]:  # condition "finale"
-            print("reached : ", current_path["final_date"])
+            # print("reached : ", current_path["final_date"])
             if not output or output["final_date"] > current_path["final_date"]:
-                print("updated : ", current_path["stops"])
+                # print("updated : ", current_path["stops"])
                 output = current_path
                 continue
 
         # print(current_station["stops"])
         for stop in current_station["stops"]:  # On vérifie chacun des arrêts de la station
-            print("Checking ", stop.stop_id, "   Name : ", stop.stop_name)
+            # print("Checking ", stop.stop_id, "   Name : ", stop.stop_name)
 
             if current_stop and stop.stop_id == current_stop.stop_id:  # cas sans changement de métro (donc pas de changement d'arrêt)
 
@@ -528,7 +533,7 @@ def dijkstra(graph: Dict, start: str, end: str, date: datetime):
                 trip_times = graph["trips_times"].get(new_trip.trip_id)  # On récupère ses arrêts
 
             else:  # le reste
-                print("No stop found")
+                # print("No stop found")
                 continue
 
             if not new_trip or not next_time:
@@ -587,8 +592,10 @@ def dijkstra(graph: Dict, start: str, end: str, date: datetime):
 
                 # et voila... pourquoi ça marche pas ????
                 queue.append((new_trip, new_station, new_stop, new_path))
-                print("current_path :\nStops : ", current_path["stops"])
-                print("added top path :\nStops : ", new_path["stops"])
+                # print("current_path :\nStops : ", current_path["stops"])
+                # print("added top path :\nStops : ", new_path["stops"])
+
+    print("found path")
 
     return output
 
@@ -650,6 +657,7 @@ async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
     """
 
     try:
+        print("here")
         date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj)
         return result
