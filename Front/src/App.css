@@ -88,7 +88,6 @@ input[type="text"] {
 #submitButton {
   font-size: 100%;
   text-overflow: ellipsis;
-  /* margin-top: 20px; */
   padding: 10px;
   color: rgb(73, 72, 72);
   border: none;

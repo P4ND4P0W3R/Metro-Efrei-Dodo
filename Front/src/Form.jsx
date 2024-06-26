@@ -96,7 +96,7 @@ const Formulaire = () => {
 
     return (
         <div id="Form">
-            <form id="Main_Form" onSubmit={handleSubmit}>
+            <form id="Main_Form">
                 <h1 className="TitleForm">Votre parcours</h1>
                 <label className="lieu_de_depart">
                     Lieu de départ :
@@ -146,8 +146,10 @@ const Formulaire = () => {
                         </div>
                     )}
                 </div>
-                <br />
-                <input type="submit" id="submitButton" value="Rechercher" />
+                <br/>
+                <div className = "SubmitButton">
+                    <input type="submit" id="submitButton" value="Rechercher" onSubmit={handleSubmit}/>
+                </div>
             </form>
         </div>
     );
