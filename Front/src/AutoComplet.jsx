@@ -25,6 +25,7 @@ const AutoComplet = ({ id, onChange }) => {
                 console.error("Error fetching stations:", error);
             }
         };
+        sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(''));
         fetchStations();
     }, []);
 
