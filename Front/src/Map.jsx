@@ -2,21 +2,15 @@ import { useState, useEffect } from 'react';
 import {
   MapContainer,
   TileLayer,
-  Marker,
   Popup,
-  useMapEvents,
   Polyline,
   CircleMarker,
-  Tooltip,
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
 import {
-  FeatureGroup,
   LayersControl,
   LayerGroup,
-  Circle,
-  Rectangle,
 } from 'react-leaflet';
 
 // Fix for default icon issues in Leaflet
@@ -32,9 +26,6 @@ L.Icon.Default.mergeOptions({
 const MapComponent = () => {
   const [stations, setStations] = useState([]);
   const [OnFirst, setOnFirst] = useState([true]);
-  // const [formData, setFormData] = useState({
-  //   stopName: '',
-  // });
 
   /* Call of the backend by API */
   useEffect(() => {
@@ -51,9 +42,7 @@ const MapComponent = () => {
   }, []);
 
   const [routes, setRoutes] = useState([]);
-  // const [formData, setFormData] = useState({
-  //   stopName: '',
-  // });
+
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -81,27 +70,6 @@ const MapComponent = () => {
       setOnFirst(true)
     }
   };
-
-  // /* --------------------------------------------------------------------- */
-
-  // /* permet de gérer le hover des poppup*/
-
-  // const RenderIcons = () => {
-  //   const markerRef = useRef();
-
-  //   const eventHandlers = useMemo(
-  //     () => ({
-  //       mouseover() {
-  //         if (markerRef) markerRef.current.openPopup();
-  //       },
-  //       mouseout() {
-  //         if (markerRef) markerRef.current.closePopup();
-  //       }
-  //     }),
-  //     []
-  //   );
-  // }
-  // /* --------------------------------------------------------------------- */
 
   /* Creation of the path by Dijsktra for the layer */
 
@@ -181,54 +149,14 @@ const MapComponent = () => {
       <LayersControl position="topright">
         <LayersControl.Overlay name="Layer with fastest path and stations">
           <LayerGroup>
-            {/* {stations.map(stop => (
-              <CircleMarker
-                key={stop.parent_station}
-                center={[stop.barycenter_lat, stop.barycenter_lon]}
-                pathOptions={{ fillColor: 'green' }}
-                radius={3}
-                eventHandlers={{
-                  mouseover: event => event.target.openPopup(),
-                  click: () => handleMarkerClick(stop),
-                }}
-              >
-                <Popup>
-                  <span>{stop.stop_name}</span>
 
-                </Popup>
-              </CircleMarker>
-            ))} */}
             <Polyline positions={pathes} />
+
           </LayerGroup>
         </LayersControl.Overlay>
 
         <LayersControl.Overlay name="Layer with all lignes and stations">
           <LayerGroup>
-            {/* {stations.map(stop => {
-              // Find the first route associated with the stop to determine its color
-              const firstRouteId = stop.route_ids_with_sequences[0]?.route_id;
-              const route = routes.find(
-                route => route.route_id === firstRouteId,
-              );
-              const routeColor = route ? `#${route.route_color}` : 'green';
-
-              return (
-                <CircleMarker
-                  key={stop.parent_station}
-                  center={[stop.barycenter_lat, stop.barycenter_lon]}
-                  pathOptions={{ fillColor: routeColor, color: routeColor }}
-                  radius={3}
-                  eventHandlers={{
-                    mouseover: event => event.target.openPopup(),
-                    click: () => handleMarkerClick(stop),
-                  }}
-                >
-                  <Popup>
-                    <span>{stop.stop_name}</span>
-                  </Popup>
-                </CircleMarker>
-              );
-            })} */}
 
             {Object.entries(subwayLines).map(([routeId, lineData]) => {
               const route = routes.find(route => route.route_id === routeId);
@@ -316,7 +244,6 @@ const MapComponent = () => {
               <CircleMarker
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
-                // pathOptions={{ color: routeColor }}
                 radius={3}
                 eventHandlers={{
                   mouseover: event => event.target.openPopup(),
