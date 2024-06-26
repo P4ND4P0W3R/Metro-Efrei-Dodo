@@ -189,7 +189,7 @@ const MapComponent = () => {
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
                 pathOptions={{ fillColor: 'green' }}
-                radius={6}
+                radius={3}
                 eventHandlers={{
                   mouseover: event => event.target.openPopup(),
                   click: () => handleMarkerClick(stop),
@@ -220,7 +220,7 @@ const MapComponent = () => {
                   key={stop.parent_station}
                   center={[stop.barycenter_lat, stop.barycenter_lon]}
                   pathOptions={{ fillColor: routeColor, color: routeColor }}
-                  radius={2}
+                  radius={3}
                   eventHandlers={{
                     mouseover: event => event.target.openPopup(),
                     click: () => handleMarkerClick(stop),
