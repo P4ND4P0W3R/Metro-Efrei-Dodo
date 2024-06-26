@@ -149,6 +149,14 @@ input[type="text"] {
   padding-left: 0 !important;
 }
 
+/* Form and Path*/
+
+#TrajetToggle
+{
+  margin-inline: auto;
+  margin-bottom: 20px;
+}
+
 /* Map */
 
 .clickable-marker::after {

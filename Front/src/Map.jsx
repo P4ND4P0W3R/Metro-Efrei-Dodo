@@ -74,15 +74,12 @@ const MapComponent = () => {
     };
     if (OnFirst) {
       sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
-      console.log("Map send to 1:" + newFormData.stopName + OnFirst)
       setOnFirst(false)
     }
     else {
       sessionStorage.setItem('formDataStation_AutoComplet2', JSON.stringify(newFormData));
-      console.log("Map send to 2:" + newFormData.stopName + OnFirst)
       setOnFirst(true)
     }
-    console.log('Storing formData in localStorage from Map:', newFormData);
   };
 
   // /* --------------------------------------------------------------------- */
@@ -184,7 +181,7 @@ const MapComponent = () => {
       <LayersControl position="topright">
         <LayersControl.Overlay name="Layer with fastest path and stations">
           <LayerGroup>
-            {stations.map(stop => (
+            {/* {stations.map(stop => (
               <CircleMarker
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
@@ -200,14 +197,14 @@ const MapComponent = () => {
 
                 </Popup>
               </CircleMarker>
-            ))}
+            ))} */}
             <Polyline positions={pathes} />
           </LayerGroup>
         </LayersControl.Overlay>
 
         <LayersControl.Overlay name="Layer with all lignes and stations">
           <LayerGroup>
-            {stations.map(stop => {
+            {/* {stations.map(stop => {
               // Find the first route associated with the stop to determine its color
               const firstRouteId = stop.route_ids_with_sequences[0]?.route_id;
               const route = routes.find(
@@ -231,7 +228,7 @@ const MapComponent = () => {
                   </Popup>
                 </CircleMarker>
               );
-            })}
+            })} */}
 
             {Object.entries(subwayLines).map(([routeId, lineData]) => {
               const route = routes.find(route => route.route_id === routeId);
@@ -311,6 +308,29 @@ const MapComponent = () => {
 
               return polylines;
             })}
+          </LayerGroup>
+        </LayersControl.Overlay>
+        <LayersControl.Overlay checked>
+          <LayerGroup >
+          {stations.map(stop => (
+              <CircleMarker
+                key={stop.parent_station}
+                center={[stop.barycenter_lat, stop.barycenter_lon]}
+                // pathOptions={{ color: routeColor }}
+                radius={3}
+                eventHandlers={{
+                  mouseover: event => event.target.openPopup(),
+                  click: () => handleMarkerClick(stop),
+                }}
+              >
+                <Popup>
+                  <span>
+                    {stop.stop_name}
+                  </span>
+                </Popup>
+              </CircleMarker>
+            ))}
+
           </LayerGroup>
         </LayersControl.Overlay>
       </LayersControl>
