@@ -19,11 +19,9 @@
   padding-right: 20px;
 }
 
-.root {
-  display: flex;
-}
-
 #Main_Form {
+  display:flex;
+  flex-direction: column;
   padding-top: 30px;
   padding-right: 25px;
   color: rgb(255, 255, 255);
@@ -82,16 +80,21 @@ input[type="text"] {
   border: 1px solid #ffffff;
   border-radius: 4px;
 }
-
+.SubmitButton
+{
+  display: flex;
+  justify-content: center;
+}
 #submitButton {
   font-size: 100%;
   text-overflow: ellipsis;
-  margin-top: 20px;
+  /* margin-top: 20px; */
   padding: 10px;
   color: rgb(73, 72, 72);
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  margin-bottom: 5%;
 }
 
 #submitButton:hover {
@@ -99,23 +102,19 @@ input[type="text"] {
   background-color: #0056b3;
 }
 
-.option-container
+.options-container
 {
-  display: flex;
-  justify-content: center;
+  display: flex; 
+  flex-direction: column;
   align-items: center;
   margin: 10px 0;
 }
-#Options
-/* {
-  display:flex;
-  align-items: center;
-  justify-content: center;
-} */
+
+
 
 .time-picker-container {
   color:#ffffff;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 
@@ -150,6 +149,19 @@ input[type="text"] {
   margin-left: 0 !important;
   padding-left: 0 !important;
 }
+
+/* Map */
+
+.clickable-marker::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+}
+
 
 @media screen and (max-width : 1100px) {
   .TitleForm {
