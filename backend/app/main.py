@@ -62,6 +62,7 @@ async def get_agencies():
         for agency in agencies
     ]
 
+
 @app.get("/routes")
 async def get_routes(agency_id: Optional[str] = None) -> List[dict]:
     if agency_id:
@@ -246,7 +247,7 @@ async def get_transfers(from_stop_id: Optional[str] = Query(None), to_stop_id: O
             "to_stop_id": transfer.to_stop.stop_id,
             "transfer_type": transfer.transfer_type,
             "min_transfer_time": transfer.min_transfer_time,
-        }for transfer in transfers
+        } for transfer in transfers
     ]
 
 
@@ -375,7 +376,7 @@ async def get_stop_times_for_trip(trip_id: str):
 async def fetch_stop_times_and_trips(date_str: str, time_str: str):
     try:
         begin_time = time.time()
-        end_time_delta = int(time_str[0:2]) + 2
+        end_time_delta = int(time_str[0:2]) + 3
         end_time_str = str(end_time_delta) + time_str[2:]
         print("init fetch")
 
@@ -523,7 +524,6 @@ async def get_metro_graph(date: str, time_date: str, date_obj: datetime.datetime
             current_station.routes[route] = current_route
 
         for stop in station["stops"]:
-
             current_stop = Stops(stop.stop_id, stop.stop_name, current_station)
             all_stops[current_stop.stop_id] = current_stop
             current_station.stops.append(current_stop)
@@ -587,8 +587,34 @@ async def get_metro_graph(date: str, time_date: str, date_obj: datetime.datetime
     return system
 
 
+def get_date_from_stop_time_departure(next_time, date):
+    departure_time = next_time.departure_time
+    hour = int(departure_time[0:2])
+    minute = int(departure_time[3:5])
+    second = int(departure_time[6:8])
+
+    if hour > 23:
+        hour -= 24
+        date += timedelta(days=1)
+
+    return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
+
+
+def get_date_from_stop_time_arrival(next_time, date):
+    arrival_time = next_time.arrival_time
+    hour = int(arrival_time[0:2])
+    minute = int(arrival_time[3:5])
+    second = int(arrival_time[6:8])
+
+    if hour > 23:
+        hour -= 24
+        date += timedelta(days=1)
+
+    return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
+
+
 def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
-    """Computes the shortest path between two stations using Dijkstra's algorithm.
+    """Computes the shortest path between two stations using Dijkstra's algorithm with a starting date.
 
     Args:
         graph: The weighted graph representing the metro network.
@@ -741,58 +767,189 @@ def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
     }
 
 
-def get_date_from_stop_time_departure(next_time, date):
-    departure_time = next_time.departure_time
-    hour = int(departure_time[0:2])
-    minute = int(departure_time[3:5])
-    second = int(departure_time[6:8])
+def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
+    """Computes the shortest path between two stations using Dijkstra's algorithm with an ending date.
 
-    if hour > 23:
-        hour -= 24
-        date += timedelta(days=1)
+        Args:
+            graph: The weighted graph representing the metro network.
+            start: The starting station ID.
+            end: The destination station ID.
+            date: The date of the journey
 
-    return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
+        Returns:
+            A dictionary containing:
+                - Dictionary of the stations used
+                - Dictionary of the stops used
+                - Time and the end of journey
+        """
+    start_time = time.time()
+
+    start_station = graph.stations[end]
+    end_station = graph.stations[start]
+
+    if not (start_station and end_station):
+        raise HTTPException(status_code=404, detail="Station not found")
+
+    queue = [(None, start_station, None,
+              [[start_station], {}, date])]  # initialisation à la station de départ et à la date d'arrivée
+    predecessors_stops = {}
+    output = {}
+
+    while queue:
+        current_trip, current_station, current_stop, current_path = queue.pop(0)
+
+        if output and output[2] > current_path[2]:  # On vérifie si on a déjà une date de départ potentielle et on la compare avec la date actuelle.
+            continue
+
+        if current_station == end_station:  # condition "finale"
+            if not output or output[2] < current_path[2]:
+                output = current_path
+                continue
+#
+        for stop in current_station.stops:  # On vérifie chacun des arrêts de la station
+            transfer_time = 2
+
+            current_date = copy.deepcopy(current_path[2])
+            if current_stop and stop != current_stop:  # On calcule l'heure à laquelle on arrive à l'arrêt si on effectue un changement
+                if stop in current_path[1]:  # à condition qu'il ne soit pas déjà dans le chemin parcouru bien évidemment
+                    continue
+
+                try:
+                    transfer_time = current_stop.transfers[stop]
+                except KeyError:
+                    pass
+                current_date -= timedelta(seconds=transfer_time)
+
+                # On regarde si on n'est pas déjà parvenu plus tard à cet arrêt dans un autre parcours
+                try:
+                    current_record = predecessors_stops[stop]
+                except KeyError:
+                    current_record = None
+
+                if current_record and current_record > current_date:
+                    continue
+                elif current_record and current_record < current_date:
+                    predecessors_stops[stop] = current_date
+                if not current_record:
+                    predecessors_stops[stop] = current_date
+
+            directions = {}
+            # On regarde toutes les directions possibles des trains passant à cet arrêt avant l'heure actuelle.
+            for stop_time in stop.stop_times:
+                try:
+                    if stop_time.previous_stop_time:
+                        current_last_train_from_direction = directions[stop_time.previous_stop_time.stop]
+                        if current_last_train_from_direction.arrival_time < stop_time.arrival_time < current_date:
+                            directions[stop_time.previous_stop_time.stop] = stop_time
+                except KeyError:
+                    if stop_time.arrival_time < current_date:
+                        directions[stop_time.previous_stop_time.stop] = stop_time
+
+            # Si l'arrêt est déjà dans le chemin alors on peut ignorer cette direction
+            for stop2 in current_path[1]:
+                try:
+                    del directions[stop2]
+                except KeyError:
+                    pass
+
+            # On va créer un nouveau parcours pour chacune des directions disponibles
+            for (direction, previous_time) in directions.items():
+
+                if not previous_time.previous_stop_time:  # On regarde si c'est un terminus (départ).
+                    continue
+
+                # On vérifie qu'on ne crée pas de cycle au prochain arrêt précédent
+                if previous_time.previous_stop_time.stop in current_path[1]:
+                    continue
+
+                # On compare avec le temps record enregistré pour le précédent arrêt
+                try:
+                    current_record = predecessors_stops[previous_time.previous_stop_time.stop]
+                except KeyError:
+                    current_record = None
+
+                if current_record and current_record > previous_time.previous_stop_time.arrival_time:
+                    continue
+                elif current_record and current_record < previous_time.previous_stop_time.arrival_time:  # On met à jour la meilleure date pour le prochain arrêt si elle est meilleure
+                    predecessors_stops[previous_time.previous_stop_time.stop] = previous_time.previous_stop_time.arrival_time
+                elif not current_record:
+                    predecessors_stops[previous_time.previous_stop_time.stop] = previous_time.previous_stop_time.arrival_time
+
+                new_station = previous_time.previous_stop_time.stop.parent_station
+
+                if current_path[0] and new_station in current_path[0]:
+                    continue
+
+                # On récupère le chemin parcouru jusque là et on ajoute les nouveaux éléments
+                new_path_stations = current_path[0].copy()
+                new_path_stations.append(new_station)
+                new_path_stops = current_path[1].copy()
+                new_path_time = previous_time.previous_stop_time.departure_time
+
+                # On ajoute aussi l'arrêt précédent si on a fait un changement de métro dans la station précédente
+                try:
+                    new_path_stops[previous_time.stop]
+                except KeyError:
+                    new_path_stops[previous_time.stop] = [previous_time.arrival_time, previous_time.departure_time]
+
+                # On ajoute le nouvel arrêt au chemin avec l'heure d'arrivée et de départ actuellement disponible à cet arrêt
+                new_path_stops[previous_time.previous_stop_time.stop] = [previous_time.previous_stop_time.arrival_time, previous_time.previous_stop_time.departure_time]
+
+                queue.append((previous_time.previous_stop_time.trip, new_station, previous_time.previous_stop_time.stop, [new_path_stations, new_path_stops, new_path_time]))
+
+    print("Revert dijkstra execution time : ", time.time() - start_time)
+    if not output:
+        return {}
+
+    print("path found : \n")
+    return {
+            "stations": [
+                {
+                    "name": station.station_name
+                } for station in output[0]
+            ],
+            "stops": [
+                {
+                    "station": stop.parent_station.station_id,
+                    "arrival_time": times[0],
+                    "departure_time": times[1]
+                } for (stop, times) in output[1].items()
+            ],
+            "arrival_date": output[2]
+        }
 
 
-def get_date_from_stop_time_arrival(next_time, date):
-    arrival_time = next_time.arrival_time
-    hour = int(arrival_time[0:2])
-    minute = int(arrival_time[3:5])
-    second = int(arrival_time[6:8])
-
-    if hour > 23:
-        hour -= 24
-        date += timedelta(days=1)
-
-    return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
-
-
-async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime):
+async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime, forward: bool):
     """Get a path between two stops considering transfers.
 
     Args:
         start_stop_id: ID of the starting station
         end_stop_id: ID of the destination station
         date: The date for the trip
+        forward: True if the start date is provided, False if end date is provided instead
 
     Returns:
         A dictionary
     """
-
     graph = await get_metro_graph(date.date().strftime("%Y%m%d"), date.time().strftime("%H%M%S"), date)
-    result = dijkstra(graph, start_stop_id, end_stop_id, date)
+    if not forward:
+        date += timedelta(hours=3)
+        result = dijkstra_revert(graph, start_stop_id, end_stop_id, date)
+    else:
+        result = dijkstra(graph, start_stop_id, end_stop_id, date)
     print(result)
     return result
 
 
-@app.get("/shortest_path/{start_stop_id}/{end_stop_id}/{date}")
-async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
+@app.get("/shortest_path/{forward}/{start_stop_id}/{end_stop_id}/{date}")
+async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, date: str):
     """Finds the shortest path between two stops.
 
     Args:
         start_stop_id: The starting station ID.
         end_stop_id: The destination station ID.
         date: The date and time of the journey (YYYY-MM-DD HH:MM:SS)
+        forward: "True" if the start date is provided, "False" if end date is provided instead
 
     Returns:
         A JSONResponse containing the dictionary returned by the dijkstra algorithm.
@@ -801,12 +958,20 @@ async def get_shortest_path(start_stop_id: str, end_stop_id: str, date: str):
     try:
         print("here")
         date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-        result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj)
+        if forward == "True":
+            forward = True
+        else:
+            forward = False
+
+        if not forward:
+            date_obj -= timedelta(hours=3)
+        result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj, forward)
+
         return result
     except ValueError:
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD HH:MM:SS."}, status_code=400)
     except Exception as e:
-        return JSONResponse(content={"error" : e}, status_code=404)
+        return JSONResponse(content={"error": e}, status_code=404)
 
 
 # -----------------------------------------------------------------------------
