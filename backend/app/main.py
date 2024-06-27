@@ -60,7 +60,7 @@ async def get_agencies():
         for agency in agencies
     ]
 
-
+@app.get("/routes")
 async def get_routes(agency_id: Optional[str] = None) -> List[dict]:
     if agency_id:
         routes = await Route.filter(agency__agency_id=agency_id).prefetch_related("agency").all()

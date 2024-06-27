@@ -50,7 +50,7 @@ const Formulaire = () => {
         let URL = "http://127.0.0.1:8000/shortest_path/";
         URL = URL.concat(StationDepartId + "/")
         URL = URL.concat(StationArriverId + "/")
-        URL = URL.concat(StringDate + " ")
+        URL = URL.concat(StringDate + "%20")
         URL = URL.concat(StringHeure)
         console.log(URL);
 
