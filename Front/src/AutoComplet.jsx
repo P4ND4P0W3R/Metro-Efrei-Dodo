@@ -3,15 +3,17 @@ import CreatableSelect from 'react-select/creatable';
 
 const AutoComplet = ({ id, onChange }) => {
     const [formData, setFormData] = useState({
-        stopName: ''
+        stopName: '',
+        stopId: '',
     });
 
     const [stations, setStations] = useState([]);
 
-    const injectValue = (value) => {
+    const injectValue = (value, id) => {
         setFormData((prevData) => ({
             ...prevData,
             stopName: value,
+            stopId: id,
         }));
     };
 
@@ -27,7 +29,7 @@ const AutoComplet = ({ id, onChange }) => {
         };
         sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(''));
         fetchStations();
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         const checkStorageChange = () => {
@@ -35,9 +37,9 @@ const AutoComplet = ({ id, onChange }) => {
             if (storedData) {
                 const parsedData = JSON.parse(storedData);
                 setFormData(parsedData);
-                injectValue(parsedData.stopName);
+                injectValue(parsedData.stopId, parsedData.stopName);
                 if (onChange) {
-                    onChange(parsedData.stopName); //Envoy a Form quand il y a une modif
+                    onChange(parsedData.stopName, parsedData.stopId); // Envoyer à Form quand il y a une modif
                 }
             }
         };
@@ -51,18 +53,18 @@ const AutoComplet = ({ id, onChange }) => {
 
     const handleSelectChange = (selectedOption) => {
         const newFormData = {
-            stopName: selectedOption ? selectedOption.value : '',
+            stopName: selectedOption ? selectedOption.label : '',
+            stopId: selectedOption ? selectedOption.value : '',
         };
         setFormData(newFormData);
         sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(newFormData));
         if (onChange) {
-            console.log(newFormData.stopName)
-            onChange(newFormData.stopName);
+            onChange(newFormData.stopName, newFormData.stopId);
         }
     };
 
     const options = stations.map(station => ({
-        value: station.stop_name,
+        value: station.parent_station,
         label: station.stop_name,
     }));
 

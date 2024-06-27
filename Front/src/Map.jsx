@@ -57,9 +57,11 @@ const MapComponent = () => {
     fetchRoutes();
   }, []);
 
+
   const handleMarkerClick = stop => {
     const newFormData = {
       stopName: stop.stop_name,
+      stopId: stop.parent_station,
     };
     if (OnFirst) {
       sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
@@ -240,7 +242,7 @@ const MapComponent = () => {
         </LayersControl.Overlay>
         <LayersControl.Overlay checked name=" All stations">
           <LayerGroup >
-          {stations.map(stop => (
+            {stations.map(stop => (
               <CircleMarker
                 key={stop.parent_station}
                 center={[stop.barycenter_lat, stop.barycenter_lon]}
