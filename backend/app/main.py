@@ -144,6 +144,7 @@ async def get_stations():
     """
     Calculates the barycenters of stations and returns associated route IDs.
     """
+    begin_time = time.time()
     stops = await Stop.all().prefetch_related("route_stops__route")
 
     # Group stops by parent_station
@@ -190,6 +191,7 @@ async def get_stations():
             }
         )
 
+    print("fetch time at stations", time.time() - begin_time)
     return stations
 
 
@@ -372,6 +374,7 @@ async def get_stop_times_for_trip(trip_id: str):
 @app.get("/get_stop_times/{date_str}/{time_str}")
 async def fetch_stop_times_and_trips(date_str: str, time_str: str):
     try:
+        begin_time = time.time()
         end_time_delta = int(time_str[0:2]) + 2
         end_time_str = str(end_time_delta) + time_str[2:]
         print("init fetch")
@@ -384,8 +387,7 @@ async def fetch_stop_times_and_trips(date_str: str, time_str: str):
             trip__service__end_date__gte=date_str
         ).prefetch_related('trip__route')
 
-        print("fetched data")
-
+        print("fetch time at stop times: ", time.time() - begin_time)
         return stop_times
 
     except ValueError:
@@ -467,11 +469,11 @@ class StopTimes:
         })
 
 
-async def get_metro_graph(date: str, time: str, date_obj: datetime.datetime):
+async def get_metro_graph(date: str, time_date: str, date_obj: datetime.datetime):
     """Constructs a weighted graph representing the metro network for a given date.
 
     Args:
-        :param time:
+        :param time_date:
         :param date:
         :param date_obj:
 
@@ -481,9 +483,14 @@ async def get_metro_graph(date: str, time: str, date_obj: datetime.datetime):
     """
 
     # création du graphe de base (stations, arrêts et transferts) :
+    print("starting graph build.")
+    start_time = time.time()
+
     system = MetroSystem()
 
+    begin_time = time.time()
     route_fetch = await get_routes()
+    print("fetch time at routes: ", time.time() - begin_time)
     stations_fetch = await get_stations()
 
     all_routes = {}
@@ -521,7 +528,9 @@ async def get_metro_graph(date: str, time: str, date_obj: datetime.datetime):
             all_stops[current_stop.stop_id] = current_stop
             current_station.stops.append(current_stop)
 
+    begin_time = time.time()
     transfers = await get_transfers()
+    print("fetch time at transfers: ", time.time() - begin_time)
 
     for transfer in transfers:
         try:
@@ -535,7 +544,7 @@ async def get_metro_graph(date: str, time: str, date_obj: datetime.datetime):
 
     # création des métros et de leurs horaires de passages
 
-    stop_times = await fetch_stop_times_and_trips(date, time)
+    stop_times = await fetch_stop_times_and_trips(date, time_date)
 
     all_trips = {}
 
@@ -573,7 +582,8 @@ async def get_metro_graph(date: str, time: str, date_obj: datetime.datetime):
                 elif stop_time.arrival_time > stop_time2.departure_time > stop_time.previous_stop_time.departure_time:
                     stop_time.previous_stop_time = stop_time2
 
-    print(f"built graph")
+    print("built graph")
+    print("Total creation time: ", time.time() - start_time)
     return system
 
 
@@ -698,18 +708,18 @@ def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
                 new_path_stops = current_path[1].copy()
                 new_path_time = next_time.next_stop_time.arrival_time
 
-                # On ajoute le nouvel arrêt au chemin avec l'heure d'arrivée et de départ actuellement disponible à cet arrêt
-                new_path_stops[next_time.next_stop_time.stop] = [next_time.next_stop_time.arrival_time, next_time.next_stop_time.departure_time]
-
-                # On ajoute aussi l'arrêt précédent, utile si on a fait un changement de métro dans la station précédente
+                # On ajoute aussi l'arrêt précédent si on a fait un changement de métro dans la station précédente
                 try:
                     new_path_stops[next_time.stop]
                 except KeyError:
                     new_path_stops[next_time.stop] = [next_time.arrival_time, next_time.departure_time]
 
+                # On ajoute le nouvel arrêt au chemin avec l'heure d'arrivée et de départ actuellement disponible à cet arrêt
+                new_path_stops[next_time.next_stop_time.stop] = [next_time.next_stop_time.arrival_time, next_time.next_stop_time.departure_time]
+
                 queue.append((next_time.next_stop_time.trip, new_station, next_time.next_stop_time.stop, [new_path_stations, new_path_stops, new_path_time]))
 
-    print("execution time : ", time.time() - start_time)
+    print("Dijkstra execution time : ", time.time() - start_time)
     if not output:
         return {}
 
