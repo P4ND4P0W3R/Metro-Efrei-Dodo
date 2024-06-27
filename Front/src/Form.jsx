@@ -14,34 +14,69 @@ const Formulaire = () => {
         lat: '',
         lon: '',
         lieuDepart: '',
+        lieuDepartId: '',
         lieuArrivee: '',
+        lieuArriveeId: '',
     });
 
     const [options, setOptions] = useState(false);
     const [departureTime, setDepartureTime] = useState(null);
     const [arrivalTime, setArrivalTime] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
+    const [Path, setPath] = useState([]);
 
     const Dikstra = () => {
-        let Heure = '';
-        const Date = selectedDate;
+        let StringHeure = '';
+        let Date = selectedDate;
         if (departureTime !== null) {
-            Heure = departureTime;
+            StringHeure = departureTime;
         } else {
-            Heure = arrivalTime;
+            StringHeure = arrivalTime;
         }
+        let StringDate = '';
+        StringDate = StringDate.concat(Date.getFullYear() + '-');
+        StringDate = StringDate.concat('0' + (Date.getMonth() + 1) + '-');
+        StringDate = StringDate.concat(Date.getDate());
 
-        const StationDepart = formData.lieuDepart;
-        const StationArriver = formData.lieuArrivee;
-        console.log(`Dikstra = \n${Date}\n${Heure}\n${StationDepart}\n${StationArriver}`);
+        StringHeure = StringHeure.concat(':00');
+
+        let DateFinal = '';
+        DateFinal = DateFinal.concat(StringDate + " ");
+        DateFinal = DateFinal.concat(StringHeure);
+
+        const StationDepartId = formData.lieuDepartId;
+        const StationArriverId = formData.lieuArriveeId;
+
+        let URL = "http://127.0.0.1:8000/shortest_path/";
+        URL = URL.concat(StationDepartId + "/")
+        URL = URL.concat(StationArriverId + "/")
+        URL = URL.concat(StringDate + " ")
+        URL = URL.concat(StringHeure)
+        console.log(URL);
+
+        const fetchPath = async () => {
+            try {
+                const response = await fetch(URL);
+                const data = await response.json();
+                setPath(data);
+            } catch (error) {
+                console.error("Error fetching stations:", error);
+            }
+        };
+        fetchPath();
+        console.log("Path : " + Path)
+
+
     };
 
     useEffect(() => {
         const storedFormData = localStorage.getItem('formData');
         if (storedFormData) {
             setFormData(JSON.parse(storedFormData));
+            console.log("Tout dans le storedFormData qui prend les info de formData");
+            console.log(storedFormData);
         } else {
-            console.error("Rien dans le storedFormData qui prend les info de formData");
+            console.log("Rien dans le storedFormData qui prend les info de formData");
         }
     }, []);
 
@@ -72,25 +107,27 @@ const Formulaire = () => {
         setArrivalTime(null);
     };
 
-    const handleLieuDepartChange = (value) => {
+    const handleLieuDepartChange = (stopName, stopId) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
-            lieuDepart: value,
+            lieuDepart: stopName,
+            lieuDepartId: stopId,
         }));
     };
 
-    const handleLieuArriveeChange = (value) => {
+    const handleLieuArriveeChange = (stopName, stopId) => {
         setFormData((prevFormData) => ({
             ...prevFormData,
-            lieuArrivee: value,
+            lieuArrivee: stopName,
+            lieuArriveeId: stopId,
         }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        Dikstra();
+        localStorage.setItem('formData', JSON.stringify(formData));
+        Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
     };
-
     return (
         <div id="Form">
             <form id="Main_Form">
@@ -143,9 +180,9 @@ const Formulaire = () => {
                         </div>
                     )}
                 </div>
-                <br/>
-                <div className = "SubmitButton">
-                    <input type="submit" id="submitButton" value="Rechercher" onClick={handleSubmit}/>
+                <br />
+                <div className="SubmitButton">
+                    <input type="submit" id="submitButton" value="Rechercher" onClick={handleSubmit} />
                 </div>
             </form>
         </div>
