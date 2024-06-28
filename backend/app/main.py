@@ -857,7 +857,7 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
                     "station": stop.parent_station.station_id,
                     "arrival_time": times[0],
                     "departure_time": times[1]
-                } for (stop, times) in output[1].items()
+                } for (stop, times) in reversed(output[1].items())
             ],
             "departure_date": output[2]
         }
