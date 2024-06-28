@@ -8,7 +8,8 @@ import 'react-clock/dist/Clock.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const Formulaire = () => {
+const Formulaire = ({stations}) => {
+
     const [formData, setFormData] = useState({
         stopName: '',
         lat: '',
@@ -59,24 +60,19 @@ const Formulaire = () => {
                 const response = await fetch(URL);
                 const data = await response.json();
                 setPath(data);
+                sessionStorage.setItem('StationsForTheRide', JSON.stringify(data.stations));
+                console.log("Stations from Form : ", data.stations)
             } catch (error) {
                 console.error("Error fetching stations:", error);
             }
         };
         fetchPath();
-        console.log("Path : " + Path)
-
-
     };
 
     useEffect(() => {
         const storedFormData = localStorage.getItem('formData');
         if (storedFormData) {
             setFormData(JSON.parse(storedFormData));
-            console.log("Tout dans le storedFormData qui prend les info de formData");
-            console.log(storedFormData);
-        } else {
-            console.log("Rien dans le storedFormData qui prend les info de formData");
         }
     }, []);
 
@@ -135,12 +131,12 @@ const Formulaire = () => {
                 <label className="lieu_de_depart">
                     Lieu de départ :
                 </label>
-                <AutoComplet id="AutoComplet1" onChange={handleLieuDepartChange} />
+                <AutoComplet stations = {stations} id="AutoComplet1" onChange={handleLieuDepartChange} />
                 <br />
                 <label className="lieu_Arrivee">
                     Lieu d'arrivée :
                 </label>
-                <AutoComplet id="AutoComplet2" onChange={handleLieuArriveeChange} />
+                <AutoComplet stations = {stations} id="AutoComplet2" onChange={handleLieuArriveeChange} />
                 <br />
                 <div className="options-container">
                     <button type="button" id="Options" onClick={Options}>
@@ -189,8 +185,9 @@ const Formulaire = () => {
     );
 };
 
-function Form() {
-    return <Formulaire />;
+const Form = ({stations}) =>
+{
+    return <Formulaire stations = {stations}/>;
 }
 
 export default Form;

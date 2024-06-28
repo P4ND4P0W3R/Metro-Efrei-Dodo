@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
-const AutoComplet = ({ id, onChange }) => {
+const AutoComplet = ({ stations ,id, onChange }) => {
+    
     const [formData, setFormData] = useState({
         stopName: '',
         stopId: '',
     });
-
-    const [stations, setStations] = useState([]);
 
     const injectValue = (value, id) => {
         setFormData((prevData) => ({
@@ -18,17 +17,7 @@ const AutoComplet = ({ id, onChange }) => {
     };
 
     useEffect(() => {
-        const fetchStations = async () => {
-            try {
-                const response = await fetch("http://localhost:8000/stations");
-                const data = await response.json();
-                setStations(data);
-            } catch (error) {
-                console.error("Error fetching stations:", error);
-            }
-        };
         sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(''));
-        fetchStations();
     }, [id]);
 
     useEffect(() => {
@@ -44,11 +33,6 @@ const AutoComplet = ({ id, onChange }) => {
             }
         };
 
-        // Check for storage change every second
-        const intervalId = setInterval(checkStorageChange, 100);
-
-        // Cleanup interval on component unmount
-        return () => clearInterval(intervalId);
     }, []);
 
     const handleSelectChange = (selectedOption) => {
@@ -99,17 +83,17 @@ const AutoComplet = ({ id, onChange }) => {
     };
 
     return (
-        <>
-            <CreatableSelect
-                value={options.find(option => option.value === formData.stopName)}
-                onChange={handleSelectChange}
-                options={options}
-                placeholder="Sélectionner une station"
-                isClearable
-                styles={customStyles}
-            />
-        </>
-    );
+         <>
+             <CreatableSelect
+                 value={options.find(option => option.value === formData.stopName)}
+                 onChange={handleSelectChange}
+                 options={options}
+                 placeholder="Sélectionner une station"
+                 isClearable
+                 styles={customStyles}
+             />
+         </>
+     );
 };
 
 export default AutoComplet;

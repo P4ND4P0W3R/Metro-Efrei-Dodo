@@ -5,13 +5,12 @@ import {
   Popup,
   Polyline,
   CircleMarker,
-} from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import './App.css';
-import {
   LayersControl,
   LayerGroup,
 } from 'react-leaflet';
+
+import 'leaflet/dist/leaflet.css';
+import './App.css';
 
 // Fix for default icon issues in Leaflet
 import L from 'leaflet';
@@ -23,40 +22,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-const MapComponent = () => {
-  const [stations, setStations] = useState([]);
-  const [OnFirst, setOnFirst] = useState([true]);
+const MapComponent = ({stations,routes}) => {
 
-  /* Call of the backend by API */
-  useEffect(() => {
-    const fetchStations = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/stations');
-        const data = await response.json();
-        setStations(data);
-      } catch (error) {
-        console.error('Error fetching stations:', error);
-      }
-    };
-    fetchStations();
-  }, []);
-
-  const [routes, setRoutes] = useState([]);
-
-
-  useEffect(() => {
-    const fetchRoutes = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/routes');
-        const data = await response.json();
-        setRoutes(data);
-      } catch (error) {
-        console.error('Error fetching routes:', error);
-      }
-    };
-    fetchRoutes();
-  }, []);
-
+  const [OnFirst, setOnFirst] = useState([]);
 
   const handleMarkerClick = stop => {
     const newFormData = {
@@ -75,25 +43,30 @@ const MapComponent = () => {
 
   /* Creation of the path by Dijsktra for the layer */
 
-  function fastestPath(objectPath) {
-    var pathTable = [];
-    pathTable = objectPath.map(stop => [
-      stop.barycenter_lat,
-      stop.barycenter_lon,
-    ]);
-    return pathTable;
-  }
+//   function fastestPath(stops, stations) {
+//     // Convertir les stations en un objet pour un accès rapide par nom de station
+//     const stationMap = {};
+//     stations.forEach(station => {
+//         stationMap[station.stop_name] = [station.barycenter_lat, station.barycenter_lon];
+//     });
 
-  var path = fastestPath(stations);
+//     console.log("C'est stationMap : ",stationMap)
 
-  var pathes = [
-    [2.37698689849219, 48.8908500522752],
-    [2.24352563133847, 48.8337005447186],
-    [2.34779496818712, 48.8938152613519],
-    [2.32267315791628, 48.8664072192036],
-    [2.34346786469835, 48.8311430914311],
-  ];
+//     // Trouver les coordonnées des arrêts correspondants
+//     const path = stops
+//         .filter(stop => stationMap.hasOwnProperty(stop.name))
+//         .map(stop => stationMap[stop.name]);
+//     console.log("C'est path: ",path)
 
+//     return path;
+// }
+
+//   var djisktraPath = fastestPath(Stops, stations);
+//   console.log("Voici Djisjktra : ", djisktraPath)
+
+
+
+ // all lignes with pathLignes 
   const pathLignes = (stations, routes) => {
     const lignes = {};
 
@@ -152,7 +125,7 @@ const MapComponent = () => {
         <LayersControl.Overlay name="Layer with fastest path and stations">
           <LayerGroup>
 
-            <Polyline positions={pathes} />
+            {/* <Polyline positions={djisktraPath} />  */}
 
           </LayerGroup>
         </LayersControl.Overlay>
@@ -267,8 +240,9 @@ const MapComponent = () => {
   );
 };
 
-function Map() {
-  return <MapComponent />;
-}
+const Map = ({ stations, routes }) => {
+  return <MapComponent stations={stations} routes={routes} />;
+};
+
 
 export default Map;
