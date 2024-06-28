@@ -19,18 +19,19 @@
   padding-right: 20px;
 }
 
-.root {
-  display: flex;
-}
-
 #Main_Form {
+  display:flex;
+  flex-direction: column;
   padding-top: 30px;
+  padding-right: 25px;
   color: rgb(255, 255, 255);
   overflow: hidden
 }
 
 .TitleForm {
+  text-align: center;
   font-size: 40px;
+  margin-bottom: 20px;
 }
 
 .lieu_de_depart {
@@ -79,21 +80,92 @@ input[type="text"] {
   border: 1px solid #ffffff;
   border-radius: 4px;
 }
-
+.SubmitButton
+{
+  display: flex;
+  justify-content: center;
+}
 #submitButton {
   font-size: 100%;
-  text-overflow: ellipsis;
-  margin-top: 20px;
-  padding: 10px;
-  color: rgb(73, 72, 72);
+  padding: 12px;
+  color: rgb(0, 0, 0);
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  margin-bottom: 5%;
 }
 
 #submitButton:hover {
   color: rgb(255, 255, 255);
   background-color: #0056b3;
+}
+
+.options-container
+{
+  display: flex; 
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0;
+}
+
+
+
+.time-picker-container {
+  color:#ffffff;
+  margin-top: 5px;
+}
+
+
+.react-time-picker__wrapper {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  margin-left: 10%;
+  margin-top:10%
+}
+
+.react-time-picker__inputGroup
+{
+  display:flex;
+  align-items: baseline;
+  justify-content: center;
+  width: 20px;
+}
+.react-time-picker__inputGroup__divider
+{
+  padding: 3%
+}
+
+.react-time-picker__inputGroup__input {
+  font-size: 16px;
+  padding: 2px;
+  width: 20px;
+}
+
+
+.react-time-picker__inputGroup__input--hasLeadingZero {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Form and Path*/
+
+#TrajetToggle
+{
+  margin-inline: auto;
+  margin-bottom: 20px;
+}
+
+/* Map */
+
+.clickable-marker::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
 }
 
 

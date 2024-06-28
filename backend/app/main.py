@@ -46,6 +46,22 @@ register_tortoise_orm(app, TORTOISE_ORM)
 #                       DATABASE QUERIES
 # -----------------------------------------------------------------------------
 
+@app.get("/agencies")
+async def get_agencies():
+    agencies = await Agency.all()
+    return [
+        {
+            "agency_id": agency.agency_id,
+            "agency_name": agency.agency_name,
+            "agency_url": agency.agency_url,
+            "agency_timezone": agency.agency_timezone,
+            "agency_lang": agency.agency_lang,
+            "agency_phone": agency.agency_phone,
+            "agency_email": agency.agency_email,
+            "agency_fare_url": agency.agency_fare_url,
+        }
+        for agency in agencies
+    ]
 
 @app.get("/routes")
 async def get_routes(agency_id: Optional[str] = None) -> List[dict]:
@@ -148,6 +164,157 @@ async def get_transfers(from_stop_id: Optional[str] = Query(None), to_stop_id: O
         } for transfer in transfers
     ]
 
+@app.get("/pathways")
+async def get_pathways(from_stop_id: Optional[str] = Query(None), to_stop_id: Optional[str] = Query(None)):
+    if from_stop_id and to_stop_id:
+        pathways = await Pathway.filter(from_stop__stop_id=from_stop_id, to_stop__stop_id=to_stop_id).prefetch_related(
+            "from_stop", "to_stop").all()
+    elif from_stop_id:
+        pathways = await Pathway.filter(from_stop__stop_id=from_stop_id).prefetch_related("from_stop", "to_stop").all()
+    elif to_stop_id:
+        pathways = await Pathway.filter(to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
+    else:
+        pathways = await Pathway.all().prefetch_related("from_stop", "to_stop")
+    return [
+        {
+            "pathway_id": pathway.pathway_id,
+            "from_stop_id": pathway.from_stop.stop_id,
+            "to_stop_id": pathway.to_stop.stop_id,
+            "pathway_mode": pathway.pathway_mode,
+            "is_bidirectional": pathway.is_bidirectional,
+            "length": pathway.length,
+            "traversal_time": pathway.traversal_time,
+            "stair_count": pathway.stair_count,
+            "max_slope": pathway.max_slope,
+            "min_width": pathway.min_width,
+            "signposted_as": pathway.signposted_as,
+            "reversed_signposted_as": pathway.reversed_signposted_as,
+        }
+        for pathway in pathways
+    ]
+
+
+@app.get("/stop_extensions")
+async def get_stop_extensions(object_id: Optional[str] = Query(None)):
+    if object_id:
+        stop_extensions = await StopExtension.filter(object_id=object_id).all()
+    else:
+        stop_extensions = await StopExtension.all()
+    return [
+        {
+            "object_id": stop_extension.object_id,
+            "object_system": stop_extension.object_system,
+            "object_code": stop_extension.object_code,
+        }
+        for stop_extension in stop_extensions
+    ]
+
+
+@app.get("/calendar")
+async def get_calendar(service_id: Optional[str] = Query(None)):
+    if service_id:
+        calendar = await Calendar.filter(service_id=service_id).all()
+    else:
+        calendar = await Calendar.all()
+    return [
+        {
+            "service_id": cal.service_id,
+            "monday": cal.monday,
+            "tuesday": cal.tuesday,
+            "wednesday": cal.wednesday,
+            "thursday": cal.thursday,
+            "friday": cal.friday,
+            "saturday": cal.saturday,
+            "sunday": cal.sunday,
+            "start_date": cal.start_date,
+            "end_date": cal.end_date,
+        }
+        for cal in calendar
+    ]
+
+
+@app.get("/calendar_dates")
+async def get_calendar_dates(service_id: Optional[str] = Query(None), date: Optional[str] = Query(None)):
+    if service_id and date:
+        calendar_dates = await CalendarDate.filter(service_id=service_id, date=date).all()
+    elif service_id:
+        calendar_dates = await CalendarDate.filter(service_id=service_id).all()
+    elif date:
+        calendar_dates = await CalendarDate.filter(date=date).all()
+    else:
+        calendar_dates = await CalendarDate.all()
+    return [
+        {
+            "service_id": calendar_date.service_id,
+            "date": calendar_date.date,
+            "exception_type": calendar_date.exception_type,
+        }
+        for calendar_date in calendar_dates
+    ]
+
+
+@app.get("/get_stop_times/{date_str}/{time_str}")
+async def fetch_stop_times_and_trips(date_str: str, time_str: str) -> List[Dict[str, Any]]:
+    try:
+        end_time_delta = int(time_str[0:2]) + 3
+        end_time_str = str(end_time_delta) + time_str[2:]
+
+        # Filtrer les StopTime après un certain horaire et les Trip disponibles à une date donnée
+        stop_times = await StopTime.filter(
+            (Q(arrival_time__gte=time_str) & Q(arrival_time__lte=end_time_str)) |
+            (Q(departure_time__gte=time_str) & Q(departure_time__lte=end_time_str)),
+            trip__service__start_date__lte=date_str,
+            trip__service__end_date__gte=date_str
+        ).prefetch_related('trip__route').all()
+
+        # Structurer les résultats
+        results = []
+        for stop_time in stop_times:
+            results.append({
+                "trip_id": stop_time.trip.trip_id,
+                "route_short_name": stop_time.trip.route.route_short_name,
+                "arrival_time": stop_time.arrival_time,
+                "departure_time": stop_time.departure_time
+            })
+
+        return results
+
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date or time format. Use YYYYMMDD for date and HH:MM:SS for time.")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/stop_times/{trip_id}")
+async def get_stop_times_for_trip(trip_id: str):
+    """Get stop times for a specific trip ID.
+
+    Args:
+        trip_id: The trip ID to retrieve stop times for.
+
+    Returns:
+        A JSONResponse containing the stop times for the specified trip.
+    """
+
+    stop_times = await StopTime.filter(trip__trip_id=trip_id).prefetch_related("trip", "stop").order_by(
+        "stop_sequence").all()
+
+    return [
+        {
+            "trip_id": stop_time.trip.trip_id,
+            "arrival_time": stop_time.arrival_time,
+            "departure_time": stop_time.departure_time,
+            "stop_id": stop_time.stop.stop_id,
+            "stop_name": stop_time.stop.stop_name,  # Include stop name for better readability
+            "stop_sequence": stop_time.stop_sequence,
+            "pickup_type": stop_time.pickup_type,
+            "drop_off_type": stop_time.drop_off_type,
+            "local_zone_id": stop_time.local_zone_id,
+            "stop_headsign": stop_time.stop_headsign,
+            "timepoint": stop_time.timepoint,
+        }
+        for stop_time in stop_times
+    ]
 
 @app.get("/get_stop_times/{date_str}/{time_str}")
 async def fetch_stop_times_and_trips(date_str: str, time_str: str):
@@ -749,7 +916,6 @@ async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, 
         return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD HH:MM:SS."}, status_code=400)
     except Exception as e:
         return JSONResponse(content={"error": e}, status_code=404)
-
 
 # -----------------------------------------------------------------------------
 #                       MINIMUM SPANNING TREE (Prim)
