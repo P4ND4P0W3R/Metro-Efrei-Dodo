@@ -1,5 +1,6 @@
 import json
 import time
+from itertools import count
 
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import JSONResponse
@@ -376,7 +377,7 @@ async def get_stop_times_for_trip(trip_id: str):
 async def fetch_stop_times_and_trips(date_str: str, time_str: str):
     try:
         begin_time = time.time()
-        end_time_delta = int(time_str[0:2]) + 3
+        end_time_delta = int(time_str[0:2]) + 2
         end_time_str = str(end_time_delta) + time_str[2:]
         print("init fetch")
 
@@ -620,13 +621,13 @@ def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
         graph: The weighted graph representing the metro network.
         start: The starting station ID.
         end: The destination station ID.
-        date: The date of the journey
+        date: The starting date
 
     Returns:
         A dictionary containing:
             - Dictionary of the stations used
             - Dictionary of the stops used
-            - Time and the end of journey
+            - Date at the end of journey
     """
     start_time = time.time()
 
@@ -805,7 +806,7 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
             if not output or output[2] < current_path[2]:
                 output = current_path
                 continue
-#
+
         for stop in current_station.stops:  # On vérifie chacun des arrêts de la station
             transfer_time = 2
 
@@ -933,7 +934,7 @@ async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: da
     """
     graph = await get_metro_graph(date.date().strftime("%Y%m%d"), date.time().strftime("%H%M%S"), date)
     if not forward:
-        date += timedelta(hours=3)
+        date += timedelta(hours=2)
         result = dijkstra_revert(graph, start_stop_id, end_stop_id, date)
     else:
         result = dijkstra(graph, start_stop_id, end_stop_id, date)
@@ -975,130 +976,129 @@ async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, 
 
 
 # -----------------------------------------------------------------------------
-#                       NETWORK CONNECTIVITY CHECK
+#                       MINIMUM SPANNING TREE (Prim)
 # -----------------------------------------------------------------------------
 
-async def check_network_connectivity(date: datetime.date):
-    """Checks if the metro network is connected for a given date.
 
-    Args:
-        date: The date for which to check connectivity.
-
-    Returns:
-        True if the network is connected, False otherwise.
-    """
-
-    graph = await get_metro_graph(date)
-    start_stop_id = list(graph.keys())[0]  # Choose any starting station
-    visited = set()
-
-    async def dfs(stop_id):
-        visited.add(stop_id)
-        for neighbor in graph[stop_id]:
-            if neighbor not in visited:
-                await dfs(neighbor)
-
-    await dfs(start_stop_id)
-    return len(visited) == len(graph)
-
-
-@app.get("/connectivity")
-async def check_connectivity(date: str):
-    """Endpoint to check network connectivity.
-
-    Args:
-        date: The date to check (YYYY-MM-DD)
-
-    Returns:
-        A JSONResponse indicating whether the network is connected.
-    """
-
-    try:
-        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-        connected = await check_network_connectivity(date_obj)
-        return JSONResponse(content={"connected": connected})
-    except ValueError:
-        return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD."}, status_code=400)
-
-
-# -----------------------------------------------------------------------------
-#                       MINIMUM SPANNING TREE (Kruskal)
-# -----------------------------------------------------------------------------
-
-class DisjointSet:
-    def __init__(self, n):
-        self.parent = list(range(n))
-        self.rank = [0] * n
-
-    def find(self, u):
-        if self.parent[u] != u:
-            self.parent[u] = self.find(self.parent[u])
-        return self.parent[u]
-
-    def union(self, u, v):
-        root_u = self.find(u)
-        root_v = self.find(v)
-        if root_u == root_v:
-            return
-        if self.rank[root_u] < self.rank[root_v]:
-            self.parent[root_u] = root_v
-        elif self.rank[root_u] > self.rank[root_v]:
-            self.parent[root_v] = root_u
-        else:
-            self.parent[root_v] = root_u
-            self.rank[root_u] += 1
-
-
-async def kruskal(graph: Dict, date: datetime.date):
-    """Computes the minimum spanning tree of the metro network using Kruskal's algorithm.
+async def prim(graph: MetroSystem, start: str, date: datetime.date):
+    """Computes the minimum spanning tree of the metro network using Prim's algorithm.
 
     Args:
         graph: The weighted graph representing the metro network.
+        start: The starting station ID.
         date: The date for which to compute the MST.
 
     Returns:
         A list of edges in the MST, sorted by weight (travel time).
     """
 
-    edges = []
-    for stop1 in graph:
-        for stop2, weight in graph[stop1].items():
-            edges.append((weight, stop1, stop2))
-    edges.sort()
+    start_time = time.time()
+    counter = count()
 
-    num_stops = len(graph)
-    disjoint_set = DisjointSet(num_stops)
-    mst = []
-    total_weight = 0
+    try:
+        start_station = graph.stations[start]
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Station not found")
 
-    for weight, stop1, stop2 in edges:
-        if disjoint_set.find(stop1) != disjoint_set.find(stop2):
-            disjoint_set.union(stop1, stop2)
-            mst.append((stop1, stop2, weight))
-            total_weight += weight
+    stations = {start_station.station_id: start_station}
+    output = []
+    cost = 0
 
-    return mst, total_weight
+    stop_times = []
+    heapq.heapify(stop_times)
+
+    # On récupère tous les liens de la station de départ pour initialiser le programme
+    for stop in start_station.stops:
+        directions = {}
+        for stop_time in stop.stop_times:
+            try:
+                if not stop_time.next_stop_time:
+                    continue
+                if stop_time.departure_time < directions[stop_time.next_stop_time.stop].departure_time:
+                    directions[stop_time.next_stop_time.stop] = stop_time
+            except KeyError:
+                if stop_time.departure_time >= date:
+                    directions[stop_time.next_stop_time.stop] = stop_time
+
+        for direction in directions.values():
+            heapq.heappush(stop_times, [(direction.next_stop_time.arrival_time - direction.departure_time).total_seconds(), next(counter), direction])
+    print(stop_times)
+    while stop_times:
+        value, _, edge = heapq.heappop(stop_times)
+        try:
+            if stations[edge.next_stop_time.stop.parent_station.station_id]:
+                continue
+        except KeyError:
+            pass
+
+        output.append(edge)
+        cost += value
+
+        next_stop_time = edge.next_stop_time
+        next_stop = next_stop_time.stop
+        next_arrival_time = next_stop_time.arrival_time
+        next_station = next_stop.parent_station
+        stations[next_station.station_id] = next_station
+
+        for stop in next_station.stops:
+            directions = {}
+
+            if stop == next_stop and next_stop_time.next_stop_time:
+                directions = {next_stop_time.next_stop_time.stop: next_stop_time}
+
+            elif stop != next_stop:
+                try:
+                    transfer_time = next_stop.transfers[stop.stop_id]
+                except KeyError:
+                    transfer_time = 10
+                next_arrival_time += timedelta(seconds=transfer_time)
+
+            for stop_time in stop.stop_times:
+                try:
+                    if not stop_time.next_stop_time:
+                        continue
+                    if next_arrival_time < stop_time.departure_time < directions[stop_time.next_stop_time.stop].departure_time:
+                        directions[stop_time.next_stop_time.stop] = stop_time
+                except KeyError:
+                    if stop_time.departure_time >= next_arrival_time:
+                        directions[stop_time.next_stop_time.stop] = stop_time
+
+            for direction in directions.values():
+                heapq.heappush(stop_times, [(direction.next_stop_time.arrival_time - direction.departure_time).total_seconds(), next(counter), direction])
+
+    result = [
+        {
+            "from": stop_time.stop.parent_station.station_name,
+            "to": stop_time.next_stop_time.stop.parent_station.station_name
+        } for stop_time in output
+
+    ]
+
+    if len(stations) == len(graph.stations.values()):
+        is_connexe = True
+    else:
+        is_connexe = False
+
+    print("Execution time : ", time.time() - start_time)
+    return result, cost, is_connexe
 
 
-@app.get("/minimum_spanning_tree")
-async def get_minimum_spanning_tree(date: str):
-    """Endpoint to compute the minimum spanning tree.
+@app.get("/prim_spanning_tree/{parent_station}/{date}")
+async def get_prim_spanning_tree(parent_station: str, date: str):
+    """Endpoint to compute the minimum spanning tree using Prim's algorithm from a specified parent_station.
 
     Args:
+        parent_station: The parent_station ID to start from.
         date: The date to compute the MST for (YYYY-MM-DD)
 
     Returns:
         A JSONResponse containing the MST edges and its total weight.
     """
 
-    try:
-        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-        graph = await get_metro_graph(date_obj)
-        mst, total_weight = await kruskal(graph, date_obj)
-        return JSONResponse(content={"mst": mst, "total_weight": total_weight})
-    except ValueError:
-        return JSONResponse(content={"error": "Invalid date format. Please use YYYY-MM-DD."}, status_code=400)
-
+    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    graph = await get_metro_graph(date_obj.date().strftime("%Y%m%d"), date_obj.time().strftime("%H:%M:%S"), date_obj)  # Pass the time and date_obj
+    output, cost, connexe = await prim(graph, parent_station, date_obj)
+    return JSONResponse(content={"mst": output, "cost": cost, "connexe": connexe}, status_code=200)
 
 # -----------------------------------------------------------------------------
 #                       RUN THE APP
