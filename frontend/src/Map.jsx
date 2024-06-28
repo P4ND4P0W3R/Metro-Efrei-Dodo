@@ -22,51 +22,51 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-const MapComponent = ({stations,routes}) => {
+const MapComponent = ({ stations, routes, onhandleMarkerClick }) => {
 
-  const [OnFirst, setOnFirst] = useState([]);
+
+  const [OnFirst, setOnFirst] = useState(true)
 
   const handleMarkerClick = stop => {
     const newFormData = {
       stopName: stop.stop_name,
       stopId: stop.parent_station,
+      destination: OnFirst,
     };
-    if (OnFirst) {
-      sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
-      setOnFirst(false)
-    }
-    else {
-      sessionStorage.setItem('formDataStation_AutoComplet2', JSON.stringify(newFormData));
-      setOnFirst(true)
-    }
+    //sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
+    onhandleMarkerClick(newFormData);
+    console.log(newFormData);
+    setOnFirst(!OnFirst);
+
+
   };
 
   /* Creation of the path by Dijsktra for the layer */
 
-//   function fastestPath(stops, stations) {
-//     // Convertir les stations en un objet pour un accès rapide par nom de station
-//     const stationMap = {};
-//     stations.forEach(station => {
-//         stationMap[station.stop_name] = [station.barycenter_lat, station.barycenter_lon];
-//     });
+  //   function fastestPath(stops, stations) {
+  //     // Convertir les stations en un objet pour un accès rapide par nom de station
+  //     const stationMap = {};
+  //     stations.forEach(station => {
+  //         stationMap[station.stop_name] = [station.barycenter_lat, station.barycenter_lon];
+  //     });
 
-//     console.log("C'est stationMap : ",stationMap)
+  //     console.log("C'est stationMap : ",stationMap)
 
-//     // Trouver les coordonnées des arrêts correspondants
-//     const path = stops
-//         .filter(stop => stationMap.hasOwnProperty(stop.name))
-//         .map(stop => stationMap[stop.name]);
-//     console.log("C'est path: ",path)
+  //     // Trouver les coordonnées des arrêts correspondants
+  //     const path = stops
+  //         .filter(stop => stationMap.hasOwnProperty(stop.name))
+  //         .map(stop => stationMap[stop.name]);
+  //     console.log("C'est path: ",path)
 
-//     return path;
-// }
+  //     return path;
+  // }
 
-//   var djisktraPath = fastestPath(Stops, stations);
-//   console.log("Voici Djisjktra : ", djisktraPath)
+  //   var djisktraPath = fastestPath(Stops, stations);
+  //   console.log("Voici Djisjktra : ", djisktraPath)
 
 
 
- // all lignes with pathLignes 
+  // all lignes with pathLignes 
   const pathLignes = (stations, routes) => {
     const lignes = {};
 
@@ -240,8 +240,8 @@ const MapComponent = ({stations,routes}) => {
   );
 };
 
-const Map = ({ stations, routes }) => {
-  return <MapComponent stations={stations} routes={routes} />;
+const Map = ({ stations, routes, onhandleMarkerClick }) => {
+  return <MapComponent stations={stations} routes={routes} onhandleMarkerClick={onhandleMarkerClick} />;
 };
 
 

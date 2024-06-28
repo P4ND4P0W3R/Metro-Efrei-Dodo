@@ -7,6 +7,7 @@ import './App.css';
 const App = () => {
   const [stations, setStations] = useState([]);
   const [routes, setRoutes] = useState([]);
+  const [FormDataForAutocomplet, setFormDataForAutocomplet] = useState(null);
 
   // Fetch stations data
   useEffect(() => {
@@ -36,10 +37,18 @@ const App = () => {
     fetchRoutes();
   }, []);
 
+  // Monter des data pour l'autocomplet
+  const handleFormDataForAutocomplet = (newFormData) => {
+    setFormDataForAutocomplet({
+      stopName: newFormData.stopName, stopId: newFormData.stopId, destination: newFormData.destination
+    });
+  };
+
+
   return (
     <>
-      <FormState stations={stations} routes={routes} />
-      <Map stations={stations} routes={routes} />
+      <FormState stations={stations} routes={routes} FormDataForAutocomplet={FormDataForAutocomplet} />
+      <Map stations={stations} routes={routes} onhandleMarkerClick={handleFormDataForAutocomplet} />
     </>
   );
 };

@@ -1,39 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
-const AutoComplet = ({ stations ,id, onChange }) => {
-    
+const AutoComplet = ({ stations, FormDataForAutocomplet, id, onChange }) => {
     const [formData, setFormData] = useState({
         stopName: '',
         stopId: '',
     });
 
-    const injectValue = (value, id) => {
-        setFormData((prevData) => ({
-            ...prevData,
-            stopName: value,
-            stopId: id,
-        }));
-    };
-
     useEffect(() => {
-        sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(''));
-    }, [id]);
-
-    useEffect(() => {
-        const checkStorageChange = () => {
-            const storedData = sessionStorage.getItem(`formDataStation_${id}`);
-            if (storedData) {
-                const parsedData = JSON.parse(storedData);
-                setFormData(parsedData);
-                injectValue(parsedData.stopId, parsedData.stopName);
-                if (onChange) {
-                    onChange(parsedData.stopName, parsedData.stopId); // Envoyer à Form quand il y a une modif
-                }
+        if (FormDataForAutocomplet) {
+            if (FormDataForAutocomplet.destination === true && id === "AutoComplet1") {
+                setFormData({
+                    stopName: FormDataForAutocomplet.stopName,
+                    stopId: FormDataForAutocomplet.stopId,
+                });
+            } else if (FormDataForAutocomplet.destination === false && id === "AutoComplet2") {
+                setFormData({
+                    stopName: FormDataForAutocomplet.stopName,
+                    stopId: FormDataForAutocomplet.stopId,
+                });
             }
-        };
-
-    }, []);
+        }
+    }, [FormDataForAutocomplet, id]);
 
     const handleSelectChange = (selectedOption) => {
         const newFormData = {
@@ -41,7 +29,6 @@ const AutoComplet = ({ stations ,id, onChange }) => {
             stopId: selectedOption ? selectedOption.value : '',
         };
         setFormData(newFormData);
-        sessionStorage.setItem(`formDataStation_${id}`, JSON.stringify(newFormData));
         if (onChange) {
             onChange(newFormData.stopName, newFormData.stopId);
         }
@@ -83,17 +70,17 @@ const AutoComplet = ({ stations ,id, onChange }) => {
     };
 
     return (
-         <>
-             <CreatableSelect
-                 value={options.find(option => option.value === formData.stopName)}
-                 onChange={handleSelectChange}
-                 options={options}
-                 placeholder="Sélectionner une station"
-                 isClearable
-                 styles={customStyles}
-             />
-         </>
-     );
+        <>
+            <CreatableSelect
+                value={options.find(option => option.value === formData.stopId)} // Set the value based on formData.stopId
+                onChange={handleSelectChange}
+                options={options}
+                placeholder="Sélectionner une station"
+                isClearable
+                styles={customStyles}
+            />
+        </>
+    );
 };
 
 export default AutoComplet;

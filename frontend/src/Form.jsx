@@ -8,7 +8,7 @@ import 'react-clock/dist/Clock.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const Formulaire = ({stations}) => {
+const Formulaire = ({ stations, FormDataForAutocomplet }) => {
 
     const [formData, setFormData] = useState({
         stopName: '',
@@ -19,7 +19,6 @@ const Formulaire = ({stations}) => {
         lieuArrivee: '',
         lieuArriveeId: '',
     });
-
     const [options, setOptions] = useState(false);
     const [departureTime, setDepartureTime] = useState(null);
     const [arrivalTime, setArrivalTime] = useState(null);
@@ -60,7 +59,6 @@ const Formulaire = ({stations}) => {
                 const response = await fetch(URL);
                 const data = await response.json();
                 setPath(data);
-                sessionStorage.setItem('StationsForTheRide', JSON.stringify(data.stations));
                 console.log("Stations from Form : ", data.stations)
             } catch (error) {
                 console.error("Error fetching stations:", error);
@@ -68,13 +66,6 @@ const Formulaire = ({stations}) => {
         };
         fetchPath();
     };
-
-    useEffect(() => {
-        const storedFormData = localStorage.getItem('formData');
-        if (storedFormData) {
-            setFormData(JSON.parse(storedFormData));
-        }
-    }, []);
 
     const Options = () => {
         if (!options) {
@@ -121,7 +112,6 @@ const Formulaire = ({stations}) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        localStorage.setItem('formData', JSON.stringify(formData));
         Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
     };
     return (
@@ -131,12 +121,12 @@ const Formulaire = ({stations}) => {
                 <label className="lieu_de_depart">
                     Lieu de départ :
                 </label>
-                <AutoComplet stations = {stations} id="AutoComplet1" onChange={handleLieuDepartChange} />
+                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet1" onChange={handleLieuDepartChange} />
                 <br />
                 <label className="lieu_Arrivee">
                     Lieu d'arrivée :
                 </label>
-                <AutoComplet stations = {stations} id="AutoComplet2" onChange={handleLieuArriveeChange} />
+                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet2" onChange={handleLieuArriveeChange} />
                 <br />
                 <div className="options-container">
                     <button type="button" id="Options" onClick={Options}>
@@ -185,9 +175,8 @@ const Formulaire = ({stations}) => {
     );
 };
 
-const Form = ({stations}) =>
-{
-    return <Formulaire stations = {stations}/>;
+const Form = ({ stations, FormDataForAutocomplet }) => {
+    return <Formulaire stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} />;
 }
 
 export default Form;

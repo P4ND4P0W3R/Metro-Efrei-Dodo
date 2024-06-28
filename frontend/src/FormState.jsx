@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import Form from './Form';
 import Path from './Path';
 
-const FormComponent = ({stations, routes}) => {
+const FormComponent = ({ stations, routes, FormDataForAutocomplet }) => {
 
     const [dispResearch, setDispResearch] = useState(true);
-
     const toggleDisplay = () => {
         setDispResearch(!dispResearch);
     };
@@ -13,15 +12,15 @@ const FormComponent = ({stations, routes}) => {
     return (
         <div id="Form">
             {dispResearch ? <>
-                <Form stations = {stations}/>
-                <button id = "TrajetToggle" onClick={toggleDisplay}>
+                <Form stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} />
+                <button id="TrajetToggle" onClick={toggleDisplay}>
                     Voir le trajet
                 </button>
             </> :
-                <> <Path stations = {stations}
-                         routes = {routes}
-                    />
-                    <button id = "TrajetToggle" onClick={toggleDisplay}>
+                <> <Path stations={stations}
+                    routes={routes}
+                />
+                    <button id="TrajetToggle" onClick={toggleDisplay}>
                         ⬅
                     </button></>}
 
@@ -29,9 +28,9 @@ const FormComponent = ({stations, routes}) => {
     );
 };
 
-const FormState = ({ stations, routes }) => {
-    return <FormComponent stations={stations} routes={routes} />;
-  };
-  
+const FormState = ({ stations, routes, FormDataForAutocomplet }) => {
+    return <FormComponent stations={stations} routes={routes} FormDataForAutocomplet={FormDataForAutocomplet} />;
+};
+
 
 export default FormState;
