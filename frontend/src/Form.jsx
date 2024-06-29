@@ -1,4 +1,4 @@
-// Form.js
+// Form.jsx
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import AutoComplet from './AutoComplet';
@@ -8,8 +8,7 @@ import 'react-clock/dist/Clock.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const Formulaire = ({ stations, FormDataForAutocomplet }) => {
-
+const Formulaire = ({ stations, shortestPath, setShortestPath }) => {
     const [formData, setFormData] = useState({
         stopName: '',
         lat: '',
@@ -19,19 +18,21 @@ const Formulaire = ({ stations, FormDataForAutocomplet }) => {
         lieuArrivee: '',
         lieuArriveeId: '',
     });
+
     const [options, setOptions] = useState(false);
     const [departureTime, setDepartureTime] = useState(null);
     const [arrivalTime, setArrivalTime] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
-    const [Path, setPath] = useState([]);
 
     const Dikstra = () => {
         let StringHeure = '';
         let Date = selectedDate;
+        let forward = 'True'; // Default to departure time
         if (departureTime !== null) {
             StringHeure = departureTime;
-        } else {
+        } else if (arrivalTime !== null) {
             StringHeure = arrivalTime;
+            forward = 'False'; // Set to arrival time if arrivalTime is selected
         }
         let StringDate = '';
         StringDate = StringDate.concat(Date.getFullYear() + '-');
@@ -41,31 +42,44 @@ const Formulaire = ({ stations, FormDataForAutocomplet }) => {
         StringHeure = StringHeure.concat(':00');
 
         let DateFinal = '';
-        DateFinal = DateFinal.concat(StringDate + " ");
+        DateFinal = DateFinal.concat(StringDate + ' ');
         DateFinal = DateFinal.concat(StringHeure);
 
         const StationDepartId = formData.lieuDepartId;
         const StationArriverId = formData.lieuArriveeId;
 
-        let URL = "http://127.0.0.1:8000/shortest_path/";
-        URL = URL.concat(StationDepartId + "/")
-        URL = URL.concat(StationArriverId + "/")
-        URL = URL.concat(StringDate + "%20")
-        URL = URL.concat(StringHeure)
+        let URL = 'http://127.0.0.1:8000/shortest_path/';
+        URL = URL.concat(forward + '/'); // Add forward parameter
+        URL = URL.concat(StationDepartId + '/');
+        URL = URL.concat(StationArriverId + '/');
+        URL = URL.concat(StringDate + '%20');
+        URL = URL.concat(StringHeure);
         console.log(URL);
 
         const fetchPath = async () => {
             try {
                 const response = await fetch(URL);
                 const data = await response.json();
-                setPath(data);
-                console.log("Stations from Form : ", data.stations)
+                setShortestPath(data); // Update shortestPath in parent component
+                console.log('Shortest Path from FORM: ', shortestPath);
+                sessionStorage.setItem(
+                    'StationsForTheRide',
+                    JSON.stringify(data.stations),
+                );
+                console.log('Stations from Form : ', data.stations);
             } catch (error) {
-                console.error("Error fetching stations:", error);
+                console.error('Error fetching stations:', error);
             }
         };
         fetchPath();
     };
+
+    useEffect(() => {
+        const storedFormData = localStorage.getItem('formData');
+        if (storedFormData) {
+            setFormData(JSON.parse(storedFormData));
+        }
+    }, []);
 
     const Options = () => {
         if (!options) {
@@ -74,16 +88,16 @@ const Formulaire = ({ stations, FormDataForAutocomplet }) => {
         setOptions(!options);
     };
 
-    const handleDateChange = (date) => {
+    const handleDateChange = date => {
         setSelectedDate(date);
     };
 
-    const handleDepartureTimeChange = (time) => {
+    const handleDepartureTimeChange = time => {
         setDepartureTime(time);
         setArrivalTime(null); // Assure qu'une seule option est sélectionnée à la fois
     };
 
-    const handleArrivalTimeChange = (time) => {
+    const handleArrivalTimeChange = time => {
         setArrivalTime(time);
         setDepartureTime(null); // Assure qu'une seule option est sélectionnée à la fois
     };
@@ -95,7 +109,7 @@ const Formulaire = ({ stations, FormDataForAutocomplet }) => {
     };
 
     const handleLieuDepartChange = (stopName, stopId) => {
-        setFormData((prevFormData) => ({
+        setFormData(prevFormData => ({
             ...prevFormData,
             lieuDepart: stopName,
             lieuDepartId: stopId,
@@ -103,30 +117,35 @@ const Formulaire = ({ stations, FormDataForAutocomplet }) => {
     };
 
     const handleLieuArriveeChange = (stopName, stopId) => {
-        setFormData((prevFormData) => ({
+        setFormData(prevFormData => ({
             ...prevFormData,
             lieuArrivee: stopName,
             lieuArriveeId: stopId,
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
+        localStorage.setItem('formData', JSON.stringify(formData));
         Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
     };
     return (
         <div id="Form">
             <form id="Main_Form">
                 <h1 className="TitleForm">Votre parcours</h1>
-                <label className="lieu_de_depart">
-                    Lieu de départ :
-                </label>
-                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet1" onChange={handleLieuDepartChange} />
+                <label className="lieu_de_depart">Lieu de départ :</label>
+                <AutoComplet
+                    stations={stations}
+                    id="AutoComplet1"
+                    onChange={handleLieuDepartChange}
+                />
                 <br />
-                <label className="lieu_Arrivee">
-                    Lieu d'arrivée :
-                </label>
-                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet2" onChange={handleLieuArriveeChange} />
+                <label className="lieu_Arrivee">Lieu d'arrivée :</label>
+                <AutoComplet
+                    stations={stations}
+                    id="AutoComplet2"
+                    onChange={handleLieuArriveeChange}
+                />
                 <br />
                 <div className="options-container">
                     <button type="button" id="Options" onClick={Options}>
@@ -168,15 +187,20 @@ const Formulaire = ({ stations, FormDataForAutocomplet }) => {
                 </div>
                 <br />
                 <div className="SubmitButton">
-                    <input type="submit" id="submitButton" value="Rechercher" onClick={handleSubmit} />
+                    <input
+                        type="submit"
+                        id="submitButton"
+                        value="Rechercher"
+                        onClick={handleSubmit}
+                    />
                 </div>
             </form>
         </div>
     );
 };
 
-const Form = ({ stations, FormDataForAutocomplet }) => {
-    return <Formulaire stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} />;
-}
+const Form = ({ stations, setShortestPath }) => {
+    return <Formulaire stations={stations} setShortestPath={setShortestPath} />;
+};
 
 export default Form;
