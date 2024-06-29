@@ -8,7 +8,7 @@ import 'react-clock/dist/Clock.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const Formulaire = ({ stations, shortestPath, setShortestPath }) => {
+const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortestPath }) => {
     const [formData, setFormData] = useState({
         stopName: '',
         lat: '',
@@ -74,12 +74,6 @@ const Formulaire = ({ stations, shortestPath, setShortestPath }) => {
         fetchPath();
     };
 
-    useEffect(() => {
-        const storedFormData = localStorage.getItem('formData');
-        if (storedFormData) {
-            setFormData(JSON.parse(storedFormData));
-        }
-    }, []);
 
     const Options = () => {
         if (!options) {
@@ -124,9 +118,8 @@ const Formulaire = ({ stations, shortestPath, setShortestPath }) => {
         }));
     };
 
-    const handleSubmit = e => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        localStorage.setItem('formData', JSON.stringify(formData));
         Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
     };
     return (
@@ -134,18 +127,10 @@ const Formulaire = ({ stations, shortestPath, setShortestPath }) => {
             <form id="Main_Form">
                 <h1 className="TitleForm">Votre parcours</h1>
                 <label className="lieu_de_depart">Lieu de départ :</label>
-                <AutoComplet
-                    stations={stations}
-                    id="AutoComplet1"
-                    onChange={handleLieuDepartChange}
-                />
+                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet1" onChange={handleLieuDepartChange} />
                 <br />
                 <label className="lieu_Arrivee">Lieu d'arrivée :</label>
-                <AutoComplet
-                    stations={stations}
-                    id="AutoComplet2"
-                    onChange={handleLieuArriveeChange}
-                />
+                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet2" onChange={handleLieuArriveeChange} />
                 <br />
                 <div className="options-container">
                     <button type="button" id="Options" onClick={Options}>
@@ -199,8 +184,8 @@ const Formulaire = ({ stations, shortestPath, setShortestPath }) => {
     );
 };
 
-const Form = ({ stations, setShortestPath }) => {
-    return <Formulaire stations={stations} setShortestPath={setShortestPath} />;
+const Form = ({ stations, FormDataForAutocomplet, setShortestPath }) => {
+    return <Formulaire stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} setShortestPath={setShortestPath} />;
 };
 
 export default Form;

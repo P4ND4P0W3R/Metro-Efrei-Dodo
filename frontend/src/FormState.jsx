@@ -6,6 +6,7 @@ import Path from './Path';
 const FormComponent = ({
     stations,
     routes,
+    FormDataForAutocomplet,
     shortestPath,
     setShortestPath,
     mst,
@@ -23,6 +24,7 @@ const FormComponent = ({
                 <>
                     <Form
                         stations={stations}
+                        FormDataForAutocomplet={FormDataForAutocomplet}
                         shortestPath={shortestPath}
                         setShortestPath={setShortestPath}
                         mst={mst}
@@ -50,6 +52,7 @@ const FormComponent = ({
 
 const FormState = ({
     stations,
+    FormDataForAutocomplet,
     routes,
     shortestPath,
     setShortestPath,
@@ -59,6 +62,7 @@ const FormState = ({
     return (
         <FormComponent
             stations={stations}
+            FormDataForAutocomplet={FormDataForAutocomplet}
             routes={routes}
             shortestPath={shortestPath}
             setShortestPath={setShortestPath}

@@ -24,27 +24,21 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-const MapComponent = ({ stations, routes, shortestPath }) => {
-    const [OnFirst, setOnFirst] = useState([]);
+const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) => {
+    const [OnFirst, setOnFirst] = useState(true)
 
     const handleMarkerClick = stop => {
         const newFormData = {
             stopName: stop.stop_name,
             stopId: stop.parent_station,
+            destination: OnFirst,
         };
-        if (OnFirst) {
-            sessionStorage.setItem(
-                'formDataStation_AutoComplet1',
-                JSON.stringify(newFormData),
-            );
-            setOnFirst(false);
-        } else {
-            sessionStorage.setItem(
-                'formDataStation_AutoComplet2',
-                JSON.stringify(newFormData),
-            );
-            setOnFirst(true);
-        }
+        //sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
+        onhandleMarkerClick(newFormData);
+        console.log(newFormData);
+        setOnFirst(!OnFirst);
+
+
     };
 
     /* Creation of the path by Dijsktra for the layer */
@@ -252,8 +246,8 @@ const MapComponent = ({ stations, routes, shortestPath }) => {
                                                 key={`${routeId}-link-last`}
                                                 positions={[
                                                     decimalStopsCoords[
-                                                        decimalStopsCoords.length -
-                                                            1
+                                                    decimalStopsCoords.length -
+                                                    1
                                                     ],
                                                     lineData.mainPath[
                                                         nextMainStopIndex
@@ -309,11 +303,12 @@ const MapComponent = ({ stations, routes, shortestPath }) => {
     );
 };
 
-const Map = ({ stations, routes, shortestPath }) => {
+const Map = ({ stations, routes, onhandleMarkerClick, shortestPath }) => {
     return (
         <MapComponent
             stations={stations}
             routes={routes}
+            onhandleMarkerClick={onhandleMarkerClick}
             shortestPath={shortestPath}
         />
     );

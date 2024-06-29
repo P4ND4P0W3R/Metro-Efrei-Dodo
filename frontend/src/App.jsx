@@ -8,6 +8,7 @@ import './App.css';
 const App = () => {
     const [stations, setStations] = useState([]);
     const [routes, setRoutes] = useState([]);
+    const [FormDataForAutocomplet, setFormDataForAutocomplet] = useState(null);
     const [shortestPath, setShortestPath] = useState(null); // State for shortest path
     const [mst, setMst] = useState(null); // State for minimum spanning tree
 
@@ -39,11 +40,19 @@ const App = () => {
         fetchRoutes();
     }, []);
 
+    // Monter des data pour l'autocomplet
+    const handleFormDataForAutocomplet = (newFormData) => {
+        setFormDataForAutocomplet({
+            stopName: newFormData.stopName, stopId: newFormData.stopId, destination: newFormData.destination
+        });
+    };
+
     return (
         <>
             <FormState
                 stations={stations}
                 routes={routes}
+                FormDataForAutocomplet={FormDataForAutocomplet}
                 shortestPath={shortestPath} // Pass the shortestPath state
                 setShortestPath={setShortestPath} // Pass the function to update shortestPath
                 mst={mst} // Pass the mst state
@@ -52,6 +61,7 @@ const App = () => {
             <Map
                 stations={stations}
                 routes={routes}
+                onhandleMarkerClick={handleFormDataForAutocomplet}
                 shortestPath={shortestPath} // Pass the shortestPath state
                 mst={mst} // Pass the mst state
             />
