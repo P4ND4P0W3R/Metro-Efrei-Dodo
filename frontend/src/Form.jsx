@@ -36,7 +36,11 @@ const Formulaire = ({
     const [mstCost, setMstCost] = useState(null); // State for MST cost
     const [mstConnexe, setMstConnexe] = useState(null); // State for MST connexity
 
+    const [isLoadingDijkstra, setIsLoadingDijkstra] = useState(false); // State for loading
+    const [isLoadingMST, setIsLoadingMST] = useState(false); // State for loading
+
     const fetchMST = async () => {
+        setIsLoadingMST(true); // Set loading to true
         try {
             const parentStation = formData.lieuDepartId; // Use the same station for MST as the departure point
             const date = selectedDate;
@@ -54,6 +58,8 @@ const Formulaire = ({
             setMstConnexe(data.connexe);
         } catch (error) {
             console.error('Error fetching MST:', error);
+        } finally {
+            setIsLoadingMST(false); // Set loading to false after the request completes
         }
     };
 
@@ -114,6 +120,8 @@ const Formulaire = ({
         URL = URL.concat(StringDate + '%20');
         URL = URL.concat(StringHeure);
 
+        setIsLoadingDijkstra(true); // Set loading to true
+
         const fetchPath = async () => {
             try {
                 const response = await fetch(URL);
@@ -125,6 +133,8 @@ const Formulaire = ({
                 );
             } catch (error) {
                 console.error('Error fetching stations:', error);
+            } finally {
+                setIsLoadingDijkstra(false); // Set loading to false after the request completes
             }
         };
         fetchPath();
@@ -215,6 +225,7 @@ const Formulaire = ({
         // If all data is available, call Dikstra
         Dikstra();
     };
+
     return (
         <div id="Form">
             <form id="Main_Form">
@@ -275,21 +286,33 @@ const Formulaire = ({
                 </div>
                 <br />
                 <div className="SubmitButton">
-                    <input
-                        type="submit"
-                        id="submitButton"
-                        value="Rechercher"
-                        onClick={handleSubmit}
-                    />
+                    {isLoadingDijkstra ? ( // Loading state
+                        <button type="button" disabled>
+                            Chargement...
+                        </button>
+                    ) : (
+                        <input
+                            type="submit"
+                            id="submitButton"
+                            value="Rechercher"
+                            onClick={handleSubmit}
+                        />
+                    )}
                 </div>
                 <br />
                 <div className="SubmitButton">
-                    <input
-                        type="button"
-                        id="MSTButton"
-                        value="Calculer l'arbre couvrant minimal"
-                        onClick={handleMSTClick}
-                    />
+                    {isLoadingMST ? ( // Loading state
+                        <button type="button" disabled>
+                            Chargement...
+                        </button>
+                    ) : (
+                        <input
+                            type="button"
+                            id="MSTButton"
+                            value="Calculer l'arbre couvrant minimal"
+                            onClick={handleMSTClick}
+                        />
+                    )}
                 </div>
                 <br />
                 {mstCost !== null && (
