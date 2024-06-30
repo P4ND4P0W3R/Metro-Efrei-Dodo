@@ -8,7 +8,14 @@ import 'react-clock/dist/Clock.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortestPath }) => {
+const Formulaire = ({
+    stations,
+    FormDataForAutocomplet,
+    shortestPath,
+    setShortestPath,
+    mst,
+    setMst,
+}) => {
     const [formData, setFormData] = useState({
         stopName: '',
         lat: '',
@@ -23,6 +30,35 @@ const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortes
     const [departureTime, setDepartureTime] = useState(null);
     const [arrivalTime, setArrivalTime] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
+
+    const [mstCost, setMstCost] = useState(null); // State for MST cost
+    const [mstConnexe, setMstConnexe] = useState(null); // State for MST connexity
+
+    const fetchMST = async () => {
+        try {
+            const parentStation = formData.lieuDepartId; // Use the same station for MST as the departure point
+            const date = selectedDate;
+            let StringDate = '';
+            StringDate = StringDate.concat(date.getFullYear() + '-');
+            StringDate = StringDate.concat('0' + (date.getMonth() + 1) + '-');
+            let StringHeure = departureTime.concat(':00');
+            StringDate = StringDate.concat(date.getDate() + ' ' + StringHeure);
+            const response = await fetch(
+                `http://127.0.0.1:8000/prim_spanning_tree/${parentStation}/${StringDate}`,
+            );
+            const data = await response.json();
+            setMst(data); // Update the MST
+            setMstCost(data.cost);
+            setMstConnexe(data.connexe);
+        } catch (error) {
+            console.error('Error fetching MST:', error);
+        }
+    };
+
+    const handleMSTClick = e => {
+        e.preventDefault();
+        fetchMST();
+    };
 
     const Dikstra = () => {
         let StringHeure = '';
@@ -54,26 +90,22 @@ const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortes
         URL = URL.concat(StationArriverId + '/');
         URL = URL.concat(StringDate + '%20');
         URL = URL.concat(StringHeure);
-        console.log(URL);
 
         const fetchPath = async () => {
             try {
                 const response = await fetch(URL);
                 const data = await response.json();
                 setShortestPath(data); // Update shortestPath in parent component
-                console.log('Shortest Path from FORM: ', shortestPath);
                 sessionStorage.setItem(
                     'StationsForTheRide',
                     JSON.stringify(data.stations),
                 );
-                console.log('Stations from Form : ', data.stations);
             } catch (error) {
                 console.error('Error fetching stations:', error);
             }
         };
         fetchPath();
     };
-
 
     const Options = () => {
         if (!options) {
@@ -118,7 +150,7 @@ const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortes
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
     };
@@ -127,10 +159,20 @@ const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortes
             <form id="Main_Form">
                 <h1 className="TitleForm">Votre parcours</h1>
                 <label className="lieu_de_depart">Lieu de départ :</label>
-                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet1" onChange={handleLieuDepartChange} />
+                <AutoComplet
+                    stations={stations}
+                    FormDataForAutocomplet={FormDataForAutocomplet}
+                    id="AutoComplet1"
+                    onChange={handleLieuDepartChange}
+                />
                 <br />
                 <label className="lieu_Arrivee">Lieu d'arrivée :</label>
-                <AutoComplet stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} id="AutoComplet2" onChange={handleLieuArriveeChange} />
+                <AutoComplet
+                    stations={stations}
+                    FormDataForAutocomplet={FormDataForAutocomplet}
+                    id="AutoComplet2"
+                    onChange={handleLieuArriveeChange}
+                />
                 <br />
                 <div className="options-container">
                     <button type="button" id="Options" onClick={Options}>
@@ -179,13 +221,45 @@ const Formulaire = ({ stations, FormDataForAutocomplet, shortestPath, setShortes
                         onClick={handleSubmit}
                     />
                 </div>
+                <br />
+                <div className="SubmitButton">
+                    <input
+                        type="button"
+                        id="MSTButton"
+                        value="Calculer l'arbre couvrant minimal"
+                        onClick={handleMSTClick}
+                    />
+                </div>
+                <br />
+                {mstCost !== null && (
+                    <div>Coût de l'arbre couvrant minimal : {mstCost}</div>
+                )}
+                {mstConnexe !== null && (
+                    <div>
+                        Le réseau est {mstConnexe ? 'connexe' : 'non connexe'}.
+                    </div>
+                )}
             </form>
         </div>
     );
 };
 
-const Form = ({ stations, FormDataForAutocomplet, setShortestPath }) => {
-    return <Formulaire stations={stations} FormDataForAutocomplet={FormDataForAutocomplet} setShortestPath={setShortestPath} />;
+const Form = ({
+    stations,
+    FormDataForAutocomplet,
+    setShortestPath,
+    mst,
+    setMst,
+}) => {
+    return (
+        <Formulaire
+            stations={stations}
+            FormDataForAutocomplet={FormDataForAutocomplet}
+            setShortestPath={setShortestPath}
+            mst={mst}
+            setMst={setMst}
+        />
+    );
 };
 
 export default Form;

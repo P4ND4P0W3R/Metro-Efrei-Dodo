@@ -24,8 +24,14 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) => {
-    const [OnFirst, setOnFirst] = useState(true)
+const MapComponent = ({
+    stations,
+    routes,
+    onhandleMarkerClick,
+    shortestPath,
+    mst,
+}) => {
+    const [OnFirst, setOnFirst] = useState(true);
 
     const handleMarkerClick = stop => {
         const newFormData = {
@@ -35,10 +41,7 @@ const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) =
         };
         //sessionStorage.setItem('formDataStation_AutoComplet1', JSON.stringify(newFormData));
         onhandleMarkerClick(newFormData);
-        console.log(newFormData);
         setOnFirst(!OnFirst);
-
-
     };
 
     /* Creation of the path by Dijsktra for the layer */
@@ -108,6 +111,7 @@ const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) =
 
     const [pathPolyline, setPathPolyline] = useState([]); // State for path polyline
     const [pathMarkers, setPathMarkers] = useState([]); // State for path markers
+    const [mstPolyline, setMstPolyline] = useState([]); // State for MST polyline
 
     useEffect(() => {
         // When shortestPath changes, update pathPolyline and pathMarkers
@@ -141,6 +145,21 @@ const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) =
             setPathMarkers(stopMarkers);
         }
     }, [shortestPath]);
+
+    useEffect(() => {
+        // When mst changes, update mstPolyline
+        if (mst && mst.mst) {
+            const mstCoords = mst.mst.map(edge => [
+                getStationCoordinates(edge.from),
+                getStationCoordinates(edge.to),
+            ]);
+            setMstPolyline(
+                mstCoords.filter(
+                    coord => coord[0] !== null && coord[1] !== null,
+                ),
+            );
+        }
+    }, [mst]);
 
     return (
         <MapContainer
@@ -246,8 +265,8 @@ const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) =
                                                 key={`${routeId}-link-last`}
                                                 positions={[
                                                     decimalStopsCoords[
-                                                    decimalStopsCoords.length -
-                                                    1
+                                                        decimalStopsCoords.length -
+                                                            1
                                                     ],
                                                     lineData.mainPath[
                                                         nextMainStopIndex
@@ -298,18 +317,29 @@ const MapComponent = ({ stations, routes, onhandleMarkerClick, shortestPath }) =
                         ))}
                     </LayerGroup>
                 </LayersControl.Overlay>
+                <LayersControl.Overlay name="Minimum Spanning Tree">
+                    <LayerGroup>
+                        {mst && mstPolyline.length > 0 && (
+                            <Polyline
+                                positions={mstPolyline}
+                                pathOptions={{ color: 'blue' }}
+                            />
+                        )}
+                    </LayerGroup>
+                </LayersControl.Overlay>
             </LayersControl>
         </MapContainer>
     );
 };
 
-const Map = ({ stations, routes, onhandleMarkerClick, shortestPath }) => {
+const Map = ({ stations, routes, onhandleMarkerClick, shortestPath, mst }) => {
     return (
         <MapComponent
             stations={stations}
             routes={routes}
             onhandleMarkerClick={onhandleMarkerClick}
             shortestPath={shortestPath}
+            mst={mst}
         />
     );
 };
