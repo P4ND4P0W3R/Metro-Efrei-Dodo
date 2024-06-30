@@ -1,6 +1,7 @@
 // FormState.jsx
 import React, { useState } from 'react';
 import Form from './Form';
+import MSTForm from './MSTForm'; // Import MSTForm
 import Path from './Path';
 
 const FormComponent = ({
@@ -11,18 +12,41 @@ const FormComponent = ({
     setShortestPath,
     mst,
     setMst,
+    forward,
+    setForward,
 }) => {
-    const [dispResearch, setDispResearch] = useState(true);
-    const [forward, setForward] = useState('True'); // Default to departure time
+    const [activeTab, setActiveTab] = useState('shortestPath'); // State for active tab
+    const [mstCost, setMstCost] = useState(null); // State for MST cost
+    const [mstConnexe, setMstConnexe] = useState(null); // State for MST connexity
 
-    const toggleDisplay = () => {
-        setDispResearch(!dispResearch);
+    const handleTabChange = tab => {
+        setActiveTab(tab);
     };
 
     return (
         <div id="Form">
-            {dispResearch ? (
-                <>
+            <div className="tab-container">
+                <button
+                    className={`tab ${activeTab === 'shortestPath' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('shortestPath')}
+                >
+                    Chercher un trajet
+                </button>
+                <button
+                    className={`tab ${activeTab === 'path' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('path')}
+                >
+                    Le chemin
+                </button>
+                <button
+                    className={`tab ${activeTab === 'mst' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('mst')}
+                >
+                    Arbre Couvrant Minimal
+                </button>
+            </div>
+            <div className="tab-content">
+                {activeTab === 'shortestPath' && (
                     <Form
                         stations={stations}
                         FormDataForAutocomplet={FormDataForAutocomplet}
@@ -33,23 +57,28 @@ const FormComponent = ({
                         forward={forward}
                         setForward={setForward}
                     />
-                    <button id="TrajetToggle" onClick={toggleDisplay}>
-                        Voir le trajet
-                    </button>
-                </>
-            ) : (
-                <>
+                )}
+                {activeTab === 'mst' && (
+                    <MSTForm // Display MSTForm
+                        stations={stations}
+                        FormDataForAutocomplet={FormDataForAutocomplet}
+                        mst={mst}
+                        setMst={setMst}
+                        mstCost={mstCost}
+                        setMstCost={setMstCost}
+                        mstConnexe={mstConnexe}
+                        setMstConnexe={setMstConnexe}
+                    />
+                )}
+                {activeTab === 'path' && ( // Add a new tab for displaying the path
                     <Path
                         stations={stations}
                         routes={routes}
                         shortestPath={shortestPath}
                         forward={forward}
                     />
-                    <button id="TrajetToggle" onClick={toggleDisplay}>
-                        ⬅
-                    </button>
-                </>
-            )}
+                )}
+            </div>
         </div>
     );
 };

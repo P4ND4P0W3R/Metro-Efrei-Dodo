@@ -1,209 +1,196 @@
 @import url('https://unpkg.com/leaflet@1.7.1/dist/leaflet.css');
 
 .root {
-  display: flex;
-  width: 100%;
-  flex-direction: row;
+    display: flex;
+    width: 100%;
+    flex-direction: row;
 }
 
 #Form {
-  width: 20vw;
-  height: 100vh;
-  position: relative;
-  left: 0;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  background-color: #000000;
-  padding-left: 20px;
-  padding-right: 20px;
+    width: 20vw;
+    height: 100vh;
+    position: relative;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: #000000;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 #Main_Form {
-  display:flex;
-  flex-direction: column;
-  padding-top: 30px;
-  padding-right: 25px;
-  color: rgb(255, 255, 255);
-  overflow: hidden
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;
+    padding-right: 25px;
+    color: rgb(255, 255, 255);
+    overflow: hidden;
 }
 
 .TitleForm {
-  text-align: center;
-  font-size: 40px;
-  margin-bottom: 20px;
+    text-align: center;
+    font-size: 40px;
+    margin-bottom: 20px;
 }
 
 .lieu_de_depart {
-  font-size: 25px;
-  margin-bottom: 10px;
+    font-size: 25px;
+    margin-bottom: 10px;
 }
 
 .lieu_Arrivee {
-  font-size: 25px;
-  margin-bottom: 10px;
+    font-size: 25px;
+    margin-bottom: 10px;
 }
 
 #PathContainer {
-  height: fit-content;
-  overflow: auto;
-  padding-top: 10px;
-  padding-bottom: 10px;
+    height: fit-content;
+    overflow: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 #StationOnPath {
-  align-content: center;
-  display: flex;
-  flex-direction: column;
-  background-color: #000000;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-top: 10px;
-
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    background-color: #000000;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
 }
 
 #PathList {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding-left: 10%;
-  border-left: #0056b3 solid 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-left: 10%;
+    border-left: #0056b3 solid 20px;
 }
 
-
-input[type="text"] {
-  height: 20px;
-  width: 200px;
-  margin-left: 2%;
-  margin-top: 10px;
-  padding: 8px;
-  border: 1px solid #ffffff;
-  border-radius: 4px;
+input[type='text'] {
+    height: 20px;
+    width: 200px;
+    margin-left: 2%;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
 }
-.SubmitButton
-{
-  display: flex;
-  justify-content: center;
+.SubmitButton {
+    display: flex;
+    justify-content: center;
 }
 #submitButton {
-  font-size: 100%;
-  padding: 12px;
-  color: rgb(0, 0, 0);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 5%;
+    font-size: 100%;
+    padding: 12px;
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 5%;
 }
 
 #submitButton:hover {
-  color: rgb(255, 255, 255);
-  background-color: #0056b3;
+    color: rgb(255, 255, 255);
+    background-color: #0056b3;
 }
 
-.options-container
-{
-  display: flex; 
-  flex-direction: column;
-  align-items: center;
-  margin: 10px 0;
+.options-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px 0;
 }
-
-
 
 .time-picker-container {
-  color:#ffffff;
-  margin-top: 5px;
+    color: #ffffff;
+    margin-top: 5px;
 }
-
 
 .react-time-picker__wrapper {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 5px;
-  margin-left: 10%;
-  margin-top:10%
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    margin-left: 10%;
+    margin-top: 10%;
 }
 
-.react-time-picker__inputGroup
-{
-  display:flex;
-  align-items: baseline;
-  justify-content: center;
-  width: 20px;
+.react-time-picker__inputGroup {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    width: 20px;
 }
-.react-time-picker__inputGroup__divider
-{
-  padding: 3%
+.react-time-picker__inputGroup__divider {
+    padding: 3%;
 }
 
 .react-time-picker__inputGroup__input {
-  font-size: 16px;
-  padding: 2px;
-  width: 20px;
+    font-size: 16px;
+    padding: 2px;
+    width: 20px;
 }
 
-
 .react-time-picker__inputGroup__input--hasLeadingZero {
-  margin-left: 0 !important;
-  padding-left: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
 }
 
 /* Form and Path*/
 
-#TrajetToggle
-{
-  margin-inline: auto;
-  margin-bottom: 20px;
+#TrajetToggle {
+    margin-inline: auto;
+    margin-bottom: 20px;
 }
 
 /* Map */
 
 .clickable-marker::after {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 20px;
-  height: 20px;
-  background: transparent;
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 20px;
+    height: 20px;
+    background: transparent;
 }
 
+@media screen and (max-width: 1100px) {
+    .TitleForm {
+        font-size: 30px;
+    }
 
-@media screen and (max-width : 1100px) {
-  .TitleForm {
-    font-size: 30px;
-  }
+    .lieu_de_depart {
+        font-size: 20px;
+    }
 
-  .lieu_de_depart {
-    font-size: 20px;
-  }
+    .lieu_Arrivee {
+        font-size: 20px;
+    }
 
-  .lieu_Arrivee {
-    font-size: 20px;
-  }
-
-  input[type="text"] {
-    height: 20px;
-    width: 130px;
-  }
-
+    input[type='text'] {
+        height: 20px;
+        width: 130px;
+    }
 }
 
-@media screen and (max-width : 800px) {
-  .TitleForm {
-    font-size: 20px;
-  }
+@media screen and (max-width: 800px) {
+    .TitleForm {
+        font-size: 20px;
+    }
 
-  .lieu_de_depart {
-    font-size: 15px;
-  }
+    .lieu_de_depart {
+        font-size: 15px;
+    }
 
-  .lieu_Arrivee {
-    font-size: 15px;
-  }
+    .lieu_Arrivee {
+        font-size: 15px;
+    }
 
-  input[type="text"] {
-    height: 20px;
-    width: 100px;
-  }
+    input[type='text'] {
+        height: 20px;
+        width: 100px;
+    }
 }

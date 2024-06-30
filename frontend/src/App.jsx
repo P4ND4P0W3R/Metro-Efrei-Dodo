@@ -41,31 +41,33 @@ const App = () => {
     }, []);
 
     // Monter des data pour l'autocomplet
-    const handleFormDataForAutocomplet = (newFormData) => {
+    const handleFormDataForAutocomplet = newFormData => {
         setFormDataForAutocomplet({
-            stopName: newFormData.stopName, stopId: newFormData.stopId, destination: newFormData.destination
+            stopName: newFormData.stopName,
+            stopId: newFormData.stopId,
+            destination: newFormData.destination,
         });
     };
 
     return (
-        <>
+        <div className="root">
             <FormState
                 stations={stations}
                 routes={routes}
                 FormDataForAutocomplet={FormDataForAutocomplet}
-                shortestPath={shortestPath} // Pass the shortestPath state
-                setShortestPath={setShortestPath} // Pass the function to update shortestPath
-                mst={mst} // Pass the mst state
-                setMst={setMst} // Pass the function to update mst
+                shortestPath={shortestPath}
+                setShortestPath={setShortestPath}
+                mst={mst}
+                setMst={setMst}
             />
             <Map
                 stations={stations}
                 routes={routes}
                 onhandleMarkerClick={handleFormDataForAutocomplet}
-                shortestPath={shortestPath} // Pass the shortestPath state
-                mst={mst} // Pass the mst state
+                shortestPath={shortestPath}
+                mst={mst}
             />
-        </>
+        </div>
     );
 };
 

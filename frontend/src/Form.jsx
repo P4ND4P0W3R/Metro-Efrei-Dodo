@@ -13,8 +13,6 @@ const Formulaire = ({
     FormDataForAutocomplet,
     shortestPath,
     setShortestPath,
-    mst,
-    setMst,
     forward,
     setForward,
 }) => {
@@ -33,62 +31,7 @@ const Formulaire = ({
     const [arrivalTime, setArrivalTime] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
 
-    const [mstCost, setMstCost] = useState(null); // State for MST cost
-    const [mstConnexe, setMstConnexe] = useState(null); // State for MST connexity
-
     const [isLoadingDijkstra, setIsLoadingDijkstra] = useState(false); // State for loading
-    const [isLoadingMST, setIsLoadingMST] = useState(false); // State for loading
-
-    const fetchMST = async () => {
-        setIsLoadingMST(true); // Set loading to true
-        try {
-            const parentStation = formData.lieuDepartId; // Use the same station for MST as the departure point
-            const date = selectedDate;
-            let StringDate = '';
-            StringDate = StringDate.concat(date.getFullYear() + '-');
-            StringDate = StringDate.concat('0' + (date.getMonth() + 1) + '-');
-            let StringHeure = departureTime.concat(':00');
-            StringDate = StringDate.concat(date.getDate() + ' ' + StringHeure);
-            const response = await fetch(
-                `http://127.0.0.1:8000/prim_spanning_tree/${parentStation}/${StringDate}`,
-            );
-            const data = await response.json();
-            setMst(data); // Update the MST
-            setMstCost(data.cost);
-            setMstConnexe(data.connexe);
-        } catch (error) {
-            console.error('Error fetching MST:', error);
-        } finally {
-            setIsLoadingMST(false); // Set loading to false after the request completes
-        }
-    };
-
-    const handleMSTClick = e => {
-        e.preventDefault();
-
-        // Check for missing data and display an alert
-        let missingData = [];
-        if (!formData.lieuDepartId) {
-            missingData.push('Lieu de départ');
-        }
-        if (selectedDate === null) {
-            missingData.push('Date du trajet');
-        }
-        if (departureTime === null) {
-            missingData.push('Heure de départ');
-        }
-
-        if (missingData.length > 0) {
-            alert(
-                `Veuillez saisir les informations suivantes : ${missingData.join(
-                    ', ',
-                )}`,
-            );
-            return;
-        }
-
-        fetchMST(); // Call fetchMST only if all data is present
-    };
 
     const Dikstra = () => {
         let StringHeure = '';
@@ -300,29 +243,6 @@ const Formulaire = ({
                     )}
                 </div>
                 <br />
-                <div className="SubmitButton">
-                    {isLoadingMST ? ( // Loading state
-                        <button type="button" disabled>
-                            Chargement...
-                        </button>
-                    ) : (
-                        <input
-                            type="button"
-                            id="MSTButton"
-                            value="Calculer l'arbre couvrant minimal"
-                            onClick={handleMSTClick}
-                        />
-                    )}
-                </div>
-                <br />
-                {mstCost !== null && (
-                    <div>Coût de l'arbre couvrant minimal : {mstCost}</div>
-                )}
-                {mstConnexe !== null && (
-                    <div>
-                        Le réseau est {mstConnexe ? 'connexe' : 'non connexe'}.
-                    </div>
-                )}
             </form>
         </div>
     );
@@ -332,8 +252,6 @@ const Form = ({
     stations,
     FormDataForAutocomplet,
     setShortestPath,
-    mst,
-    setMst,
     forward,
     setForward,
 }) => {
@@ -342,8 +260,6 @@ const Form = ({
             stations={stations}
             FormDataForAutocomplet={FormDataForAutocomplet}
             setShortestPath={setShortestPath}
-            mst={mst}
-            setMst={setMst}
             forward={forward}
             setForward={setForward}
         />
