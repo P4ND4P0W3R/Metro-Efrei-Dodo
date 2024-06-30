@@ -3,21 +3,52 @@ import './App.css';
 import React, { useState, useEffect } from 'react';
 import moment from 'moment'; // Import moment for time calculations
 
-const Path = ({ shortestPath }) => {
+const Path = ({ shortestPath, forward }) => {
     const [path, setPath] = useState([]); // Use a local state for path
     const [stops, setStops] = useState([]);
     const [journeyTime, setJourneyTime] = useState(null); // State for journey time
+    const [departureTime, setDepartureTime] = useState(null);
+    const [arrivalTime, setArrivalTime] = useState(null);
 
     useEffect(() => {
         if (shortestPath) {
             setPath(shortestPath.stations);
             setStops(shortestPath.stops);
 
-            // Calculate journey time
-            const arrivalDate = moment(shortestPath.arrival_date);
-            const departureDate = moment(shortestPath.stops[0].arrival_time); // Use arrival_time of the first stop
-            const journeyDuration = arrivalDate.diff(departureDate, 'minutes');
-            setJourneyTime(journeyDuration);
+            if (forward === 'True') {
+                // Calculate journey time using arrival_date for departure time scenario
+                const departureDate = moment(
+                    shortestPath.stops[0].arrival_time,
+                ); // Use arrival_time of the first stop
+                const arrivalDate = moment(shortestPath.arrival_date);
+                const journeyDuration = arrivalDate.diff(
+                    departureDate,
+                    'minutes',
+                );
+                setJourneyTime(journeyDuration);
+                setDepartureTime(departureDate.format('HH:mm'));
+                setArrivalTime(arrivalDate.format('HH:mm'));
+            } else {
+                // Calculate journey time using arrival_date for arrival time scenario
+                const arrivalDate = moment(
+                    shortestPath.stops[shortestPath.stops.length - 1]
+                        .arrival_time,
+                );
+                const departureDate = moment(shortestPath.departure_date); // Use arrival_time of the first stop
+                const journeyDuration = arrivalDate.diff(
+                    departureDate,
+                    'minutes',
+                );
+                setJourneyTime(journeyDuration);
+                setDepartureTime(departureDate.format('HH:mm'));
+                setArrivalTime(arrivalDate.format('HH:mm'));
+            }
+
+            // // Calculate journey time using arrival_date for arrival time scenario
+            // const arrivalDate = moment(shortestPath.arrival_date);
+            // const departureDate = moment(shortestPath.stops[0].arrival_time); // Use arrival_time of the first stop
+            // const journeyDuration = arrivalDate.diff(departureDate, 'minutes');
+            // setJourneyTime(journeyDuration);
         }
     }, [shortestPath]); // Update when shortestPath changes
 
@@ -53,11 +84,9 @@ const Path = ({ shortestPath }) => {
                 <>
                     <div>Trajet : </div>
                     <div>
-                        {moment(shortestPath.stops[0].arrival_time).format(
-                            'HH:mm',
-                        )}{' '}
-                        {' - '}{' '}
-                        {moment(shortestPath.arrival_date).format('HH:mm')}
+                        {departureTime}
+                        {' - '}
+                        {arrivalTime}
                     </div>
                     <div>Durée du trajet : {journeyTime} minutes</div>
                     <FirstStation />

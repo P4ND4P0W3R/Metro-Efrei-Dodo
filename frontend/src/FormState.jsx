@@ -13,6 +13,7 @@ const FormComponent = ({
     setMst,
 }) => {
     const [dispResearch, setDispResearch] = useState(true);
+    const [forward, setForward] = useState('True'); // Default to departure time
 
     const toggleDisplay = () => {
         setDispResearch(!dispResearch);
@@ -29,6 +30,8 @@ const FormComponent = ({
                         setShortestPath={setShortestPath}
                         mst={mst}
                         setMst={setMst}
+                        forward={forward}
+                        setForward={setForward}
                     />
                     <button id="TrajetToggle" onClick={toggleDisplay}>
                         Voir le trajet
@@ -40,6 +43,7 @@ const FormComponent = ({
                         stations={stations}
                         routes={routes}
                         shortestPath={shortestPath}
+                        forward={forward}
                     />
                     <button id="TrajetToggle" onClick={toggleDisplay}>
                         ⬅
@@ -58,6 +62,8 @@ const FormState = ({
     setShortestPath,
     mst,
     setMst,
+    forward,
+    setForward,
 }) => {
     return (
         <FormComponent
@@ -68,6 +74,8 @@ const FormState = ({
             setShortestPath={setShortestPath}
             mst={mst}
             setMst={setMst}
+            forward={forward}
+            setForward={setForward}
         />
     );
 };

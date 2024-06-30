@@ -15,6 +15,8 @@ const Formulaire = ({
     setShortestPath,
     mst,
     setMst,
+    forward,
+    setForward,
 }) => {
     const [formData, setFormData] = useState({
         stopName: '',
@@ -63,12 +65,11 @@ const Formulaire = ({
     const Dikstra = () => {
         let StringHeure = '';
         let Date = selectedDate;
-        let forward = 'True'; // Default to departure time
         if (departureTime !== null) {
             StringHeure = departureTime;
         } else if (arrivalTime !== null) {
             StringHeure = arrivalTime;
-            forward = 'False'; // Set to arrival time if arrivalTime is selected
+            setForward('False'); // Set to arrival time if arrivalTime is selected
         }
         let StringDate = '';
         StringDate = StringDate.concat(Date.getFullYear() + '-');
@@ -152,7 +153,17 @@ const Formulaire = ({
 
     const handleSubmit = e => {
         e.preventDefault();
-        Dikstra(); // Appel de Dikstra après avoir enregistré les données dans localStorage
+        if (
+            formData.lieuDepartId &&
+            formData.lieuArriveeId &&
+            (departureTime !== null || arrivalTime !== null)
+        ) {
+            // Check if all data is available
+            Dikstra();
+        } else {
+            // Display an error message
+            alert('Veuillez saisir toutes les informations du trajet.');
+        }
     };
     return (
         <div id="Form">
@@ -250,6 +261,8 @@ const Form = ({
     setShortestPath,
     mst,
     setMst,
+    forward,
+    setForward,
 }) => {
     return (
         <Formulaire
@@ -258,6 +271,8 @@ const Form = ({
             setShortestPath={setShortestPath}
             mst={mst}
             setMst={setMst}
+            forward={forward}
+            setForward={setForward}
         />
     );
 };
