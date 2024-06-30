@@ -59,7 +59,29 @@ const Formulaire = ({
 
     const handleMSTClick = e => {
         e.preventDefault();
-        fetchMST();
+
+        // Check for missing data and display an alert
+        let missingData = [];
+        if (!formData.lieuDepartId) {
+            missingData.push('Lieu de départ');
+        }
+        if (selectedDate === null) {
+            missingData.push('Date du trajet');
+        }
+        if (departureTime === null) {
+            missingData.push('Heure de départ');
+        }
+
+        if (missingData.length > 0) {
+            alert(
+                `Veuillez saisir les informations suivantes : ${missingData.join(
+                    ', ',
+                )}`,
+            );
+            return;
+        }
+
+        fetchMST(); // Call fetchMST only if all data is present
     };
 
     const Dikstra = () => {
@@ -153,17 +175,45 @@ const Formulaire = ({
 
     const handleSubmit = e => {
         e.preventDefault();
-        if (
-            formData.lieuDepartId &&
-            formData.lieuArriveeId &&
-            (departureTime !== null || arrivalTime !== null)
-        ) {
-            // Check if all data is available
-            Dikstra();
-        } else {
-            // Display an error message
-            alert('Veuillez saisir toutes les informations du trajet.');
+
+        // Check for missing data and display an alert
+        let missingData = [];
+        if (!formData.lieuDepartId) {
+            missingData.push('Lieu de départ');
         }
+        if (!formData.lieuArriveeId) {
+            missingData.push("Lieu d'arrivée");
+        }
+        if (selectedDate === null) {
+            missingData.push('Date du trajet');
+        }
+        if (departureTime === null && arrivalTime === null) {
+            missingData.push("Heure de départ ou d'arrivée");
+        }
+
+        if (missingData.length > 0) {
+            alert(
+                `Veuillez saisir les informations suivantes : ${missingData.join(
+                    ', ',
+                )}`,
+            );
+            return;
+        }
+
+        // Check if the departure and arrival stations are the same
+        if (formData.lieuDepartId === formData.lieuArriveeId) {
+            missingData.push(
+                "Le lieu de départ et d'arrivée ne peuvent être les mêmes.",
+            );
+        }
+
+        if (missingData.length > 0) {
+            alert(`${missingData.join(', ')}`);
+            return;
+        }
+
+        // If all data is available, call Dikstra
+        Dikstra();
     };
     return (
         <div id="Form">
