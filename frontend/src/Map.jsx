@@ -172,7 +172,7 @@ const MapComponent = ({
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <LayersControl position="topright">
-                <LayersControl.Overlay name="Layer with fastest path and stations">
+                <LayersControl.Overlay name="Chemin le plus court (Dijkstra)">
                     <LayerGroup>
                         {/* Polyline for the path */}
                         {shortestPath && pathPolyline.length > 1 && (
@@ -187,7 +187,18 @@ const MapComponent = ({
                     </LayerGroup>
                 </LayersControl.Overlay>
 
-                <LayersControl.Overlay name="Layer with all lignes and stations">
+                <LayersControl.Overlay name="Arbre Couvrant de Poids Minimum (Prim)">
+                    <LayerGroup>
+                        {mst && mstPolyline.length > 0 && (
+                            <Polyline
+                                positions={mstPolyline}
+                                pathOptions={{ color: 'blue' }}
+                            />
+                        )}
+                    </LayerGroup>
+                </LayersControl.Overlay>
+
+                <LayersControl.Overlay name="Toutes les lignes">
                     <LayerGroup>
                         {Object.entries(subwayLines).map(
                             ([routeId, lineData]) => {
@@ -294,7 +305,8 @@ const MapComponent = ({
                         )}
                     </LayerGroup>
                 </LayersControl.Overlay>
-                <LayersControl.Overlay checked name=" All stations">
+
+                <LayersControl.Overlay checked name="Toutes les stations">
                     <LayerGroup>
                         {stations.map(stop => (
                             <CircleMarker
@@ -315,16 +327,6 @@ const MapComponent = ({
                                 </Popup>
                             </CircleMarker>
                         ))}
-                    </LayerGroup>
-                </LayersControl.Overlay>
-                <LayersControl.Overlay name="Minimum Spanning Tree">
-                    <LayerGroup>
-                        {mst && mstPolyline.length > 0 && (
-                            <Polyline
-                                positions={mstPolyline}
-                                pathOptions={{ color: 'blue' }}
-                            />
-                        )}
                     </LayerGroup>
                 </LayersControl.Overlay>
             </LayersControl>
