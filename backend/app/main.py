@@ -42,6 +42,21 @@ register_tortoise_orm(app, TORTOISE_ORM)
 #                       DATABASE QUERIES
 # -----------------------------------------------------------------------------
 
+# ANSI color codes
+class colors:
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    CYAN = '\033[96m'
+    WHITE = '\033[97m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ITALIC = '\033[3m'
+    RESET = '\033[0m'
+
+total_begin_time = time.time()
 
 @app.get("/routes")
 async def get_routes(agency_id: Optional[str] = None) -> List[dict]:
@@ -118,18 +133,16 @@ async def get_stations():
             }
         )
 
-    print("fetch time at stations", time.time() - begin_time)
+    print("* Retrieved stations in: " + colors.YELLOW + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
     return stations
 
 
 @app.get("/transfers")
 async def get_transfers(from_stop_id: Optional[str] = Query(None), to_stop_id: Optional[str] = Query(None)):
     if from_stop_id and to_stop_id:
-        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id,
-                                          to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
+        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id, to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
     elif from_stop_id:
-        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id).prefetch_related("from_stop",
-                                                                                            "to_stop").all()
+        transfers = await Transfer.filter(from_stop__stop_id=from_stop_id).prefetch_related("from_stop", "to_stop").all()
     elif to_stop_id:
         transfers = await Transfer.filter(to_stop__stop_id=to_stop_id).prefetch_related("from_stop", "to_stop").all()
     else:
@@ -151,7 +164,6 @@ async def fetch_stop_times_and_trips(date_str: str, time_str: str):
         begin_time = time.time()
         end_time_delta = int(time_str[0:2]) + 2
         end_time_str = str(end_time_delta) + time_str[2:]
-        print("init fetch")
 
         # Filtrer les StopTime après un certain horaire et les Trip et route disponibles à une date donnée
         stop_times = await StopTime.all().filter(
@@ -161,12 +173,11 @@ async def fetch_stop_times_and_trips(date_str: str, time_str: str):
             trip__service__end_date__gte=date_str
         ).prefetch_related('trip__route')
 
-        print("fetch time at stop times: ", time.time() - begin_time)
+        print("* Retrieved stop times in: " + colors.YELLOW + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
         return stop_times
 
     except ValueError:
-        raise HTTPException(status_code=400,
-                            detail="Invalid date or time format. Use YYYYMMDD for date and HH:MM:SS for time.")
+        raise HTTPException(status_code=400, detail="Invalid date or time format. Use YYYYMMDD for date and HH:MM:SS for time.")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -257,14 +268,14 @@ async def get_metro_graph(date: str, time_date: str, date_obj: datetime.datetime
     """
 
     # création du graphe de base (stations, arrêts et transferts) :
-    print("starting graph build.")
+    print(colors.YELLOW + colors.ITALIC + "- Building the graph ... " + colors.RESET)
     start_time = time.time()
 
     system = MetroSystem()
 
     begin_time = time.time()
     route_fetch = await get_routes()
-    print("fetch time at routes: ", time.time() - begin_time)
+    print("* Retrieved routes in: " + colors.YELLOW + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
     stations_fetch = await get_stations()
 
     all_routes = {}
@@ -303,7 +314,7 @@ async def get_metro_graph(date: str, time_date: str, date_obj: datetime.datetime
 
     begin_time = time.time()
     transfers = await get_transfers()
-    print("fetch time at transfers: ", time.time() - begin_time)
+    print("* Retrieved transfers in: " + colors.YELLOW + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
 
     for transfer in transfers:
         try:
@@ -355,8 +366,7 @@ async def get_metro_graph(date: str, time_date: str, date_obj: datetime.datetime
                 elif stop_time.arrival_time > stop_time2.departure_time > stop_time.previous_stop_time.departure_time:
                     stop_time.previous_stop_time = stop_time2
 
-    print("built graph")
-    print("Total creation time: ", time.time() - start_time)
+    print("-> Graph built in: " + colors.BLUE + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
     return system
 
 
@@ -386,7 +396,7 @@ def get_date_from_stop_time_arrival(next_time, date):
     return datetime.datetime.combine(date.date(), datetime.time(hour, minute, second))
 
 
-def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
+def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime, total_begin_time: time):
     """Computes the shortest path between two stations using Dijkstra's algorithm with a starting date.
 
     Args:
@@ -401,7 +411,7 @@ def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
             - Dictionary of the stops used
             - Date at the end of journey
     """
-    start_time = time.time()
+    begin_time = time.time()
 
     start_station = graph.stations[start]
     end_station = graph.stations[end]
@@ -518,11 +528,10 @@ def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
 
                 queue.append((next_time.next_stop_time.trip, new_station, next_time.next_stop_time.stop, [new_path_stations, new_path_stops, new_path_time]))
 
-    print("Dijkstra execution time : ", time.time() - start_time)
+    print("-> Executed Dijkstra's algorithm in: " + colors.BLUE + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
     if not output:
         return {}
 
-    print("path found : \n")
     return {
         "stations": [
             {
@@ -536,11 +545,12 @@ def dijkstra(graph: MetroSystem, start: str, end: str, date: datetime):
                 "departure_time": times[1]
             } for (stop, times) in output[1].items()
         ],
-        "arrival_date": output[2]
+        "arrival_date": output[2],
+        "total_execution_time": time.time() - total_begin_time
     }
 
 
-def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
+def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime, total_begin_time: time):
     """Computes the shortest path between two stations using Dijkstra's algorithm with an ending date.
 
         Args:
@@ -555,7 +565,7 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
                 - Dictionary of the stops used
                 - Time and the end of journey
         """
-    start_time = time.time()
+    begin_time = time.time()
 
     start_station = graph.stations[end]
     end_station = graph.stations[start]
@@ -563,8 +573,7 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
     if not (start_station and end_station):
         raise HTTPException(status_code=404, detail="Station not found")
 
-    queue = [(None, start_station, None,
-              [[start_station], {}, date])]  # initialisation à la station de départ et à la date d'arrivée
+    queue = [(None, start_station, None, [[start_station], {}, date])]  # initialisation à la station de départ et à la date d'arrivée
     predecessors_stops = {}
     output = {}
 
@@ -670,11 +679,11 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
 
                 queue.append((previous_time.previous_stop_time.trip, new_station, previous_time.previous_stop_time.stop, [new_path_stations, new_path_stops, new_path_time]))
 
-    print("Revert dijkstra execution time : ", time.time() - start_time)
+    print("-> Executed Dijkstra's reverse algorithm in: " + colors.BLUE + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
+    print(colors.UNDERLINE + "-> Total execution time: " + colors.GREEN + colors.BOLD + str(time.time() - total_begin_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
     if not output:
         return {}
 
-    print("path found : \n")
     return {
             "stations": [
                 {
@@ -688,11 +697,12 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime):
                     "departure_time": times[1]
                 } for (stop, times) in reversed(output[1].items())
             ],
-            "departure_date": output[2]
+            "departure_date": output[2],
+            "total_execution_time": time.time() - total_begin_time
         }
 
 
-async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime, forward: bool):
+async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: datetime, forward: bool, total_begin_time: time):
     """Get a path between two stops considering transfers.
 
     Args:
@@ -707,10 +717,9 @@ async def get_path_with_transfers(start_stop_id: str, end_stop_id: str, date: da
     graph = await get_metro_graph(date.date().strftime("%Y%m%d"), date.time().strftime("%H%M%S"), date)
     if not forward:
         date += timedelta(hours=2)
-        result = dijkstra_revert(graph, start_stop_id, end_stop_id, date)
+        result = dijkstra_revert(graph, start_stop_id, end_stop_id, date, total_begin_time)
     else:
-        result = dijkstra(graph, start_stop_id, end_stop_id, date)
-    print(result)
+        result = dijkstra(graph, start_stop_id, end_stop_id, date, total_begin_time)
     return result
 
 
@@ -728,8 +737,9 @@ async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, 
         A JSONResponse containing the dictionary returned by the dijkstra algorithm.
     """
 
+    total_begin_time = time.time()
+
     try:
-        print("here")
         date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         if forward == "True":
             forward = True
@@ -738,7 +748,8 @@ async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, 
 
         if not forward:
             date_obj -= timedelta(hours=2)
-        result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj, forward)
+        result = await get_path_with_transfers(start_stop_id, end_stop_id, date_obj, forward, total_begin_time)
+        print(colors.UNDERLINE + "-> Total execution time: " + colors.GREEN + colors.BOLD + str(time.time() - total_begin_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
 
         return result
     except ValueError:
@@ -752,7 +763,7 @@ async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, 
 # -----------------------------------------------------------------------------
 
 
-async def prim(graph: MetroSystem, start: str, date: datetime.date):
+async def prim(graph: MetroSystem, start: str, date: datetime.date, total_begin_time: time):
     """Computes the minimum spanning tree of the metro network using Prim's algorithm.
 
     Args:
@@ -764,7 +775,7 @@ async def prim(graph: MetroSystem, start: str, date: datetime.date):
         A list of edges in the MST, sorted by weight (travel time).
     """
 
-    start_time = time.time()
+    begin_time = time.time()
     counter = count()
 
     try:
@@ -794,7 +805,6 @@ async def prim(graph: MetroSystem, start: str, date: datetime.date):
 
         for direction in directions.values():
             heapq.heappush(stop_times, [(direction.next_stop_time.arrival_time - direction.departure_time).total_seconds(), next(counter), direction])
-    print(stop_times)
     while stop_times:
         value, _, edge = heapq.heappop(stop_times)
         try:
@@ -853,8 +863,9 @@ async def prim(graph: MetroSystem, start: str, date: datetime.date):
     else:
         is_connexe = False
 
-    print("Execution time : ", time.time() - start_time)
-    return result, cost, is_connexe
+    print("-> Executed Prim's algorithm in: " + colors.BLUE + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
+    print(colors.UNDERLINE + "-> Total execution time: " + colors.GREEN + colors.BOLD + str(time.time() - total_begin_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
+    return result, cost, is_connexe, time.time() - total_begin_time
 
 
 @app.get("/prim_spanning_tree/{parent_station}/{date}")
@@ -863,16 +874,18 @@ async def get_prim_spanning_tree(parent_station: str, date: str):
 
     Args:
         parent_station: The parent_station ID to start from.
-        date: The date to compute the MST for (YYYY-MM-DD)
+        date: The date to compute the MST for (YYYY-MM-DD HH:MM:SS)
 
     Returns:
         A JSONResponse containing the MST edges and its total weight.
     """
 
+    total_begin_time = time.time()
+
     date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     graph = await get_metro_graph(date_obj.date().strftime("%Y%m%d"), date_obj.time().strftime("%H:%M:%S"), date_obj)  # Pass the time and date_obj
-    output, cost, connexe = await prim(graph, parent_station, date_obj)
-    return JSONResponse(content={"mst": output, "cost": cost, "connexe": connexe}, status_code=200)
+    output, cost, connexe, total_execution_time = await prim(graph, parent_station, date_obj, total_begin_time)
+    return JSONResponse(content={"mst": output, "cost": cost, "connexe": connexe, "total_execution_time": total_execution_time}, status_code=200)
 
 # -----------------------------------------------------------------------------
 #                       RUN THE APP
