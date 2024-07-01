@@ -9,6 +9,7 @@ const Path = ({ shortestPath, forward }) => {
     const [journeyTime, setJourneyTime] = useState(null); // State for journey time
     const [departureTime, setDepartureTime] = useState(null);
     const [arrivalTime, setArrivalTime] = useState(null);
+    const [executionTime, setExecutionTime] = useState(null);
 
     useEffect(() => {
         if (shortestPath) {
@@ -28,6 +29,7 @@ const Path = ({ shortestPath, forward }) => {
                 setJourneyTime(journeyDuration);
                 setDepartureTime(departureDate.format('HH:mm'));
                 setArrivalTime(arrivalDate.format('HH:mm'));
+                setExecutionTime(shortestPath.total_execution_time);
             } else {
                 // Calculate journey time using arrival_date for arrival time scenario
                 const arrivalDate = moment(
@@ -42,6 +44,7 @@ const Path = ({ shortestPath, forward }) => {
                 setJourneyTime(journeyDuration);
                 setDepartureTime(departureDate.format('HH:mm'));
                 setArrivalTime(arrivalDate.format('HH:mm'));
+                setExecutionTime(shortestPath.total_execution_time);
             }
 
             // // Calculate journey time using arrival_date for arrival time scenario
@@ -88,10 +91,14 @@ const Path = ({ shortestPath, forward }) => {
                         {' - '}
                         {arrivalTime}
                     </div>
+                    <br />
                     <div>Durée du trajet : {journeyTime} minutes</div>
+                    <br />
                     <FirstStation />
                     <MiddleStation />
                     <LastStation />
+                    <br />
+                    <div>Temps d'exécution : {executionTime} secondes</div>
                 </>
             )}
         </div>

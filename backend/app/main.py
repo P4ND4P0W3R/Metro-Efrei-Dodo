@@ -680,7 +680,6 @@ def dijkstra_revert(graph: MetroSystem, start: str, end: str, date: datetime, to
                 queue.append((previous_time.previous_stop_time.trip, new_station, previous_time.previous_stop_time.stop, [new_path_stations, new_path_stops, new_path_time]))
 
     print("-> Executed Dijkstra's reverse algorithm in: " + colors.BLUE + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
-    print(colors.UNDERLINE + "-> Total execution time: " + colors.GREEN + colors.BOLD + str(time.time() - total_begin_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
     if not output:
         return {}
 
@@ -864,7 +863,6 @@ async def prim(graph: MetroSystem, start: str, date: datetime.date, total_begin_
         is_connexe = False
 
     print("-> Executed Prim's algorithm in: " + colors.BLUE + colors.BOLD + str(time.time() - begin_time) + colors.RESET + " seconds")
-    print(colors.UNDERLINE + "-> Total execution time: " + colors.GREEN + colors.BOLD + str(time.time() - total_begin_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
     return result, cost, is_connexe, time.time() - total_begin_time
 
 
@@ -885,6 +883,7 @@ async def get_prim_spanning_tree(parent_station: str, date: str):
     date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     graph = await get_metro_graph(date_obj.date().strftime("%Y%m%d"), date_obj.time().strftime("%H:%M:%S"), date_obj)  # Pass the time and date_obj
     output, cost, connexe, total_execution_time = await prim(graph, parent_station, date_obj, total_begin_time)
+    print(colors.UNDERLINE + "-> Total execution time: " + colors.GREEN + colors.BOLD + str(time.time() - total_begin_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
     return JSONResponse(content={"mst": output, "cost": cost, "connexe": connexe, "total_execution_time": total_execution_time}, status_code=200)
 
 # -----------------------------------------------------------------------------

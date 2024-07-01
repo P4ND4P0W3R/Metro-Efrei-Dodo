@@ -29,6 +29,8 @@ const MSTForm = ({
 
     const [isLoadingMST, setIsLoadingMST] = useState(false); // State for loading
 
+    const [executionTime, setExecutionTime] = useState(null);
+
     const fetchMST = async () => {
         setIsLoadingMST(true); // Set loading to true
         try {
@@ -45,6 +47,7 @@ const MSTForm = ({
             setMst(data); // Update the MST
             setMstCost(data.cost);
             setMstConnexe(data.connexe);
+            setExecutionTime(data.total_execution_time);
         } catch (error) {
             console.error('Error fetching MST:', error);
         } finally {
@@ -145,10 +148,15 @@ const MSTForm = ({
                 {mstCost !== null && (
                     <div>Coût de l'arbre couvrant minimal : {mstCost}</div>
                 )}
+                <br />
                 {mstConnexe !== null && (
                     <div>
                         Le réseau est {mstConnexe ? 'connexe' : 'non connexe'}.
                     </div>
+                )}
+                <br />
+                {executionTime !== null && (
+                    <div>Temps d'exécution : {executionTime} secondes</div>
                 )}
             </form>
         </div>
