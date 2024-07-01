@@ -735,6 +735,7 @@ async def get_shortest_path(forward: str, start_stop_id: str, end_stop_id: str, 
     Returns:
         A JSONResponse containing the dictionary returned by the dijkstra algorithm.
     """
+    print(colors.UNDERLINE + colors.YELLOW + colors.BOLD + "DIJKSTRA'S ALGORITHM" + colors.RESET)
 
     total_begin_time = time.time()
 
@@ -877,6 +878,8 @@ async def get_prim_spanning_tree(parent_station: str, date: str):
     Returns:
         A JSONResponse containing the MST edges and its total weight.
     """
+
+    print(colors.UNDERLINE + colors.YELLOW + colors.BOLD + "PRIM'S ALGORITHM" + colors.RESET)
 
     total_begin_time = time.time()
 
