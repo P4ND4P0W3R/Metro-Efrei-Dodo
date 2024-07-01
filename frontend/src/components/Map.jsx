@@ -11,7 +11,7 @@ import {
 } from 'react-leaflet';
 
 import 'leaflet/dist/leaflet.css';
-import './App.css';
+import '../App.css';
 import moment from 'moment';
 
 // Fix for default icon issues in Leaflet

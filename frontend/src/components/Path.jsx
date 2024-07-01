@@ -1,5 +1,5 @@
 // Path.jsx
-import './App.css';
+import '../App.css';
 import React, { useState, useEffect } from 'react';
 import moment from 'moment'; // Import moment for time calculations
 
@@ -82,25 +82,27 @@ const Path = ({ shortestPath, forward }) => {
 
     // Conditional Rendering
     return (
-        <div id="PathContainer">
-            {shortestPath && (
-                <>
-                    <div>Trajet : </div>
-                    <div>
-                        {departureTime}
-                        {' - '}
-                        {arrivalTime}
-                    </div>
-                    <br />
-                    <div>Durée du trajet : {journeyTime} minutes</div>
-                    <br />
-                    <FirstStation />
-                    <MiddleStation />
-                    <LastStation />
-                    <br />
-                    <div>Temps d'exécution : {executionTime} secondes</div>
-                </>
-            )}
+        <div className="form-container">
+            <div className="form-content">
+                {shortestPath && (
+                    <>
+                        <div>Trajet : </div>
+                        <div>
+                            {departureTime}
+                            {' - '}
+                            {arrivalTime}
+                        </div>
+                        <br />
+                        <div>Durée du trajet : {journeyTime} minutes</div>
+                        <br />
+                        <FirstStation />
+                        <MiddleStation />
+                        <LastStation />
+                        <br />
+                        <div>Temps d'exécution : {executionTime} secondes</div>
+                    </>
+                )}
+            </div>
         </div>
     );
 };

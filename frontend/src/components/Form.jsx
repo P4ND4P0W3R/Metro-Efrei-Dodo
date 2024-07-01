@@ -1,6 +1,6 @@
 // Form.jsx
 import React, { useEffect, useState } from 'react';
-import './App.css';
+import '../App.css';
 import AutoComplet from './AutoComplet';
 import TimePicker from 'react-time-picker';
 import 'react-time-picker/dist/TimePicker.css';
@@ -170,8 +170,8 @@ const Formulaire = ({
     };
 
     return (
-        <div id="Form">
-            <form id="Main_Form">
+        <div className="form-container">
+            <form className="form-content">
                 <h1 className="TitleForm">Votre parcours</h1>
                 <label className="lieu_de_depart">Lieu de départ :</label>
                 <AutoComplet

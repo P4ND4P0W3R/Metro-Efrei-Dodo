@@ -1,6 +1,6 @@
 // MSTForm.jsx
 import React, { useState, useEffect } from 'react';
-import './App.css';
+import '../App.css';
 import AutoComplet from './AutoComplet';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -100,8 +100,8 @@ const MSTForm = ({
     };
 
     return (
-        <div id="MSTForm">
-            <form id="MST_Form">
+        <div className="form-container">
+            <form className="form-content">
                 <h1 className="TitleForm">Arbre Couvrant Minimal</h1>
                 <label className="lieu_de_depart">Lieu de départ :</label>
                 <AutoComplet

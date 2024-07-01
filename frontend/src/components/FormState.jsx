@@ -12,19 +12,18 @@ const FormComponent = ({
     setShortestPath,
     mst,
     setMst,
-    forward,
-    setForward,
 }) => {
     const [activeTab, setActiveTab] = useState('shortestPath'); // State for active tab
     const [mstCost, setMstCost] = useState(null); // State for MST cost
     const [mstConnexe, setMstConnexe] = useState(null); // State for MST connexity
+    const [forward, setForward] = useState('True');
 
     const handleTabChange = tab => {
         setActiveTab(tab);
     };
 
     return (
-        <div id="Form">
+        <div className="form-container">
             <div className="tab-container">
                 <button
                     className={`tab ${activeTab === 'shortestPath' ? 'active' : ''}`}
@@ -36,7 +35,7 @@ const FormComponent = ({
                     className={`tab ${activeTab === 'path' ? 'active' : ''}`}
                     onClick={() => handleTabChange('path')}
                 >
-                    Le chemin
+                    Le Trajet
                 </button>
                 <button
                     className={`tab ${activeTab === 'mst' ? 'active' : ''}`}
