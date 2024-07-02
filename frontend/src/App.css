@@ -227,3 +227,29 @@ label {
         font-size: 0.8em;
     }
 }
+
+/* Hide scrollbar for WebKit browsers */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for Firefox */
+body {
+    scrollbar-width: none; /* Firefox */
+
+    /* Hide scrollbar for Internet Explorer and Edge (Legacy) */
+    overflow: -ms-autohiding-scrollbar; /* IE and Edge */
+}
+
+/* General CSS to hide scrollbar for other elements */
+.element-with-scroll {
+    overflow: auto; /* or overflow: scroll; */
+}
+
+.element-with-scroll::-webkit-scrollbar {
+    display: none; /* WebKit browsers */
+}
+
+.element-with-scroll {
+    scrollbar-width: none; /* Firefox */
+}
