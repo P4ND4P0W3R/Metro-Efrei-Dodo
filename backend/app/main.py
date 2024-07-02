@@ -16,6 +16,7 @@ from services.mst import *
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 import copy
+from utils.colors import colors
 
 app = FastAPI()
 
@@ -41,20 +42,6 @@ register_tortoise_orm(app, TORTOISE_ORM)
 # -----------------------------------------------------------------------------
 #                       DATABASE QUERIES
 # -----------------------------------------------------------------------------
-
-# ANSI color codes
-class colors:
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    ITALIC = '\033[3m'
-    RESET = '\033[0m'
 
 total_begin_time = time.time()
 

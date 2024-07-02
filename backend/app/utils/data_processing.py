@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import time
+from colors import colors
 
 def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     """Cleans GTFS data to include only RATP data and writes to a new folder.
@@ -13,6 +14,8 @@ def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
         None
     """
     start_time = time.time()
+
+    print(colors.YELLOW + colors.ITALIC + "- Data processing ... " + colors.RESET)
 
     # Create the cleaned GTFS folder if it doesn't exist
     if not os.path.exists(cleaned_gtfs_folder):
@@ -78,13 +81,10 @@ def clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder):
     stop_extensions = stop_extensions[stop_extensions["object_id"].isin(stops["stop_id"])]
     stop_extensions.to_csv(f"{cleaned_gtfs_folder}/stop_extensions.txt", index=False)
 
-    print(f"GTFS data cleaned successfully. Files written to: {cleaned_gtfs_folder}")
-
-    end_time = time.time()  # Record the end time
-    total_time = end_time - start_time  # Calculate the total execution time
-    print(f"Total execution time: {total_time} seconds")
+    print("-> GTFS data cleaned successfully. Files written to: " + colors.BLUE + colors.BOLD + cleaned_gtfs_folder + colors.RESET)
+    print(colors.UNDERLINE + "-> Data processed in: " + colors.GREEN + colors.BOLD + str(time.time() - start_time) + colors.RESET + colors.UNDERLINE + " seconds" + colors.RESET)
 
 # Example usage
-gtfs_folder = r"C:\Users\Paul\OneDrive - Efrei\Documents\EFREI\L3_2023-2024\S6\Mastercamp\Mastercamp-IT-2024\backend\data\raw_gtfs"
-cleaned_gtfs_folder = r"C:\Users\Paul\OneDrive - Efrei\Documents\EFREI\L3_2023-2024\S6\Mastercamp\Mastercamp-IT-2024\backend\data\clean2_gtfs"
+gtfs_folder = "../../data/raw_gtfs"
+cleaned_gtfs_folder = "../../data/cleaned_gtfs4"
 clean_gtfs_data(gtfs_folder, cleaned_gtfs_folder)
