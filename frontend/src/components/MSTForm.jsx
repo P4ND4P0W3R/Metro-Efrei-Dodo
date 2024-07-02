@@ -6,6 +6,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import TimePicker from 'react-time-picker';
 import 'react-time-picker/dist/TimePicker.css';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const MSTForm = ({
     stations,
@@ -130,16 +131,21 @@ const MSTForm = ({
                     />
                 </div>
                 <br />
-                <div className="SubmitButton">
+                <div className="submit-button">
                     {isLoadingMST ? ( // Loading state
-                        <button type="button" disabled>
-                            Chargement...
+                        <button
+                            type="button"
+                            disabled
+                            style={{ width: '150px', height: '70px' }}
+                        >
+                            <CircularProgress />
                         </button>
                     ) : (
                         <input
                             type="button"
-                            id="MSTButton"
-                            value="Calculer l'arbre couvrant minimal"
+                            id="submit-button"
+                            value="Calculer"
+                            style={{ width: '150px', height: '70px' }}
                             onClick={handleMSTClick}
                         />
                     )}

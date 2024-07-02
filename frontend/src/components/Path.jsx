@@ -56,13 +56,13 @@ const Path = ({ shortestPath, forward }) => {
     }, [shortestPath]); // Update when shortestPath changes
 
     function FirstStation() {
-        return <div id="PathList">{path.length > 0 && path[0].name}</div>;
+        return <div id="path-list">{path.length > 0 && path[0].name}</div>;
     }
 
     function MiddleStation() {
         const Middlepath = path.slice(1, -1);
         return (
-            <div id="PathList">
+            <div id="middle-path">
                 {Middlepath.map((path, index) => (
                     <div id="StationOnPath" key={index}>
                         {path.name}
@@ -74,7 +74,7 @@ const Path = ({ shortestPath, forward }) => {
 
     function LastStation() {
         return (
-            <div id="PathList">
+            <div id="path-list">
                 {path.length > 0 && path[path.length - 1].name}
             </div>
         );

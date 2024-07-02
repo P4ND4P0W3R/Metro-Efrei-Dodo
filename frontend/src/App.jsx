@@ -1,5 +1,4 @@
-// App.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Map from './components/Map';
 import FormState from './components/FormState';
 import 'leaflet/dist/leaflet.css';
@@ -11,8 +10,6 @@ const App = () => {
     const [FormDataForAutocomplet, setFormDataForAutocomplet] = useState(null);
     const [shortestPath, setShortestPath] = useState(null); // State for shortest path
     const [mst, setMst] = useState(null); // State for minimum spanning tree
-    const [forward, setForward] = useState('True');
-
     // Fetch stations data
     useEffect(() => {
         const fetchStations = async () => {

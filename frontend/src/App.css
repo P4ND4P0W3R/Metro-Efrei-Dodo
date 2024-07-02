@@ -1,9 +1,11 @@
 @import url('https://unpkg.com/leaflet@1.7.1/dist/leaflet.css');
 
-.root {
-    display: flex;
-    width: 100%;
-    flex-direction: row;
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #202124; /* Dark background color */
+    font-family: 'Roboto', sans-serif; /* Modern font */
+    color: #ffffff; /* Light text color */
 }
 
 .app-container {
@@ -11,197 +13,217 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    margin: 0;
-    padding: 0;
 }
 
 .form-container {
     width: 25vw;
     height: 100vh;
+    background-color: #242526; /* Slightly lighter background for sidebar */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
     display: flex;
     flex-direction: column;
+    transition: width 0.3s ease;
 }
 
 .tab-container {
     display: flex;
+    background-color: #18191a; /* Darker background for tabs */
+    padding: 10px;
+    border-bottom: 1px solid #333;
 }
 
 .tab {
     flex: 1;
     text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0; /* Rounded corners for tabs */
+    transition: background-color 0.3s ease;
+}
+
+.tab.active {
+    background-color: #333; /* Highlight active tab */
+    border: #0056b3 solid 1px;
 }
 
 .form-content {
     flex: 1;
     overflow: auto;
-    padding: 10px;
+    padding: 20px;
     box-sizing: border-box;
-    padding-bottom: 20px;
+    max-height: 92vh;
 }
 
 .TitleForm {
     text-align: center;
-    font-size: 40px;
+    font-size: 2em;
     margin-bottom: 20px;
 }
 
-.lieu_de_depart {
-    font-size: 25px;
+.lieu_de_depart,
+.lieu_Arrivee,
+label {
+    font-size: 1.2em;
     margin-bottom: 10px;
 }
 
-.lieu_Arrivee {
-    font-size: 25px;
-    margin-bottom: 10px;
-}
-
-#PathContainer {
-    height: fit-content;
-    overflow: auto;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-#StationOnPath {
-    align-content: center;
-    display: flex;
-    flex-direction: column;
-    background-color: #000000;
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: 10px;
-}
-
-#PathList {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding-left: 10%;
-    border-left: #0056b3 solid 20px;
-}
-
-input[type='text'] {
-    height: 20px;
-    width: 200px;
-    margin-left: 2%;
-    margin-top: 10px;
-    padding: 8px;
-    border: 1px solid #ffffff;
-    border-radius: 4px;
-}
-.SubmitButton {
-    display: flex;
-    justify-content: center;
-}
-#submitButton {
-    font-size: 100%;
-    padding: 12px;
-    color: rgb(0, 0, 0);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 5%;
-}
-
-#submitButton:hover {
-    color: rgb(255, 255, 255);
-    background-color: #0056b3;
-}
-
-.options-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 10px 0;
-}
-
-.time-picker-container {
-    color: #ffffff;
-    margin-top: 5px;
-}
-
-.react-time-picker__wrapper {
-    border: 1px solid #ccc;
+/* Styling for AutoComplete */
+.react-select__control {
+    background-color: #333;
+    border: 1px solid #555;
     border-radius: 5px;
-    padding: 5px;
-    margin-left: 10%;
-    margin-top: 10%;
+    color: #ffffff;
 }
 
-.react-time-picker__inputGroup {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    width: 20px;
+.react-select__option {
+    background-color: #242526;
+    color: #ffffff;
 }
-.react-time-picker__inputGroup__divider {
-    padding: 3%;
+
+.react-select__option--is-focused {
+    background-color: #333;
+}
+
+.react-select__option--is-selected {
+    background-color: #444;
+}
+
+.react-select__menu {
+    background-color: #242526;
+    border: 1px solid #555;
+    border-radius: 5px;
+}
+
+.react-select__single-value {
+    color: #ffffff;
+}
+
+/* Styling for DatePicker */
+.react-datepicker__input-container input {
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: #ffffff;
+    padding: 10px;
+}
+
+.react-datepicker__header {
+    background-color: #18191a;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+    background-color: #0056b3; /* Blue highlight for selected day */
+    color: #ffffff;
+}
+
+/* Styling for TimePicker */
+.react-time-picker__wrapper {
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
 }
 
 .react-time-picker__inputGroup__input {
-    font-size: 16px;
-    padding: 2px;
-    width: 20px;
+    background-color: #333;
+    color: #ffffff;
+    border: none;
 }
 
-.react-time-picker__inputGroup__input--hasLeadingZero {
-    margin-left: 0 !important;
-    padding-left: 0 !important;
+.react-time-picker__inputGroup__divider {
+    color: #ffffff;
 }
 
-/* Form and Path*/
+/* Path display */
 
-#TrajetToggle {
-    margin-inline: auto;
-    margin-bottom: 20px;
+#middle-path {
+    display: flex;
+    flex-direction: column;
+    background-color: #18191a;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
 }
 
-/* Map */
-
-.clickable-marker::after {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    width: 20px;
-    height: 20px;
-    background: transparent;
+#StationOnPath {
+    padding: 5px;
+    border-bottom: 1px solid #333;
 }
+
+#path-list {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-left: 4px solid #0056b3; /* Blue line for path */
+    margin-bottom: 10px;
+}
+
+/* Submit button */
+#submit-button {
+    font-size: 1em;
+    padding: 12px 20px;
+    color: rgb(0, 0, 0);
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%; /* Make the button take full width of its parent */
+    text-align: center; /* Center the text */
+}
+/* Submit button container */
+.submit-button {
+    text-align: center; /* Center the button within its container */
+}
+
+#submit-button:hover {
+    background-color: #0056b3; /* Blue button on hover */
+    color: #ffffff;
+}
+
+#submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Options button */
+#Options {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 1.5em;
+}
+
+/* Media queries for responsiveness */
 
 @media screen and (max-width: 1100px) {
+    .form-container {
+        width: 30vw;
+    }
+
     .TitleForm {
-        font-size: 30px;
+        font-size: 1.5em;
     }
 
-    .lieu_de_depart {
-        font-size: 20px;
-    }
-
+    .lieu_de_depart,
     .lieu_Arrivee {
-        font-size: 20px;
-    }
-
-    input[type='text'] {
-        height: 20px;
-        width: 130px;
+        font-size: 1em;
     }
 }
 
 @media screen and (max-width: 800px) {
+    .form-container {
+        width: 35vw;
+    }
+
     .TitleForm {
-        font-size: 20px;
+        font-size: 1.2em;
     }
 
-    .lieu_de_depart {
-        font-size: 15px;
-    }
-
+    .lieu_de_depart,
     .lieu_Arrivee {
-        font-size: 15px;
-    }
-
-    input[type='text'] {
-        height: 20px;
-        width: 100px;
+        font-size: 0.8em;
     }
 }

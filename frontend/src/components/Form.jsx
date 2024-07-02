@@ -7,6 +7,7 @@ import 'react-time-picker/dist/TimePicker.css';
 import 'react-clock/dist/Clock.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const Formulaire = ({
     stations,
@@ -205,6 +206,7 @@ const Formulaire = ({
                                 placeholderText="Sélectionner une date"
                             />
                             <br />
+                            <br />
                             <div className="time-picker-container">
                                 <label>Heure de départ :</label>
                                 <TimePicker
@@ -228,16 +230,21 @@ const Formulaire = ({
                     )}
                 </div>
                 <br />
-                <div className="SubmitButton">
+                <div className="submit-button">
                     {isLoadingDijkstra ? ( // Loading state
-                        <button type="button" disabled>
-                            Chargement...
+                        <button
+                            type="button"
+                            disabled
+                            style={{ width: '150px', height: '70px' }}
+                        >
+                            <CircularProgress />
                         </button>
                     ) : (
                         <input
                             type="submit"
-                            id="submitButton"
+                            id="submit-button"
                             value="Rechercher"
+                            style={{ width: '150px', height: '70px' }}
                             onClick={handleSubmit}
                         />
                     )}
