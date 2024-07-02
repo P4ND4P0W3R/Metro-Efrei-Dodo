@@ -1,4 +1,4 @@
-# Mastercamp-IT-2024
+# Metro Efrei Dodo (MED)
 
 This project leverages real-time data from Ile-de-France Mobilités (IDFM) to provide an efficient metro navigation system for Paris and Bordeaux (using a simplified dataset). It utilizes graph algorithms to calculate shortest paths, visualize the minimum spanning tree of the metro network, and check network connectivity.
 
