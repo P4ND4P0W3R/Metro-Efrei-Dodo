@@ -50,7 +50,7 @@ The project uses:
 2. **Navigate to the project directory:**
 
    ```bash
-   cd Mastercamp-IT-2024
+   cd Metro-Efrei-Dodo
    ```
 
 > [!IMPORTANT]
