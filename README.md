@@ -44,7 +44,7 @@ The project uses:
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/P4ND4P0W3R/Mastercamp-IT-2024.git
+   git clone https://github.com/P4ND4P0W3R/Metro-Efrei-Dodo.git
    ```
 
 2. **Navigate to the project directory:**
