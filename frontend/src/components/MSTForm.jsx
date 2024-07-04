@@ -35,12 +35,16 @@ const MSTForm = ({
     const fetchMST = async () => {
         setIsLoadingMST(true); // Set loading to true
         try {
+            let StringHeure = '';
+            StringHeure = departureTime;
             const parentStation = formData.lieuDepartId;
             const date = selectedDate;
             let StringDate = '';
             StringDate = StringDate.concat(date.getFullYear() + '-');
             StringDate = StringDate.concat('0' + (date.getMonth() + 1) + '-');
-            StringDate = StringDate.concat(date.getDate() + ' 00:00:00');
+            StringDate = StringDate.concat(
+                date.getDate() + ' ' + StringHeure + ':00',
+            );
             const response = await fetch(
                 `http://127.0.0.1:8000/prim_spanning_tree/${parentStation}/${StringDate}`,
             );
