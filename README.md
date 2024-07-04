@@ -2,6 +2,19 @@
 
 This project leverages real-time data from Ile-de-France Mobilités (IDFM) to provide an efficient metro navigation system for Paris and Bordeaux (using a simplified dataset). It utilizes graph algorithms to calculate shortest paths, visualize the minimum spanning tree of the metro network, and check network connectivity.
 
+## 📃 Table of Contents
+
+- [Metro, Efrei, Dodo (MED)](#metro-efrei-dodo-med)
+  - [📃 Table of Contents](#-table-of-contents)
+  - [About the project](#about-the-project)
+    - [ℹ️ Project Description](#ℹ️-project-description)
+    - [👥 Team Members](#-team-members)
+  - [Getting Started](#getting-started)
+    - [⚙️ Prerequisites](#️-prerequisites)
+    - [🚦 Run the Project](#-run-the-project)
+  - [🗂️ File Structure](#️-file-structure)
+  - [📝 Additional Notes](#-additional-notes)
+
 ## About the project
 
 > [!NOTE]
@@ -43,49 +56,49 @@ The project uses:
 
 1. **Clone the repository:**
 
-   ```bash
-   git clone https://github.com/P4ND4P0W3R/Metro-Efrei-Dodo.git
-   ```
+    ```bash
+    git clone https://github.com/P4ND4P0W3R/Metro-Efrei-Dodo.git
+    ```
 
 2. **Navigate to the project directory:**
 
-   ```bash
-   cd Metro-Efrei-Dodo
-   ```
+    ```bash
+    cd Metro-Efrei-Dodo
+    ```
 
 > [!IMPORTANT]
 > Before running the backend, create a `.env` file in the `backend/` directory and add your database connection string as `DATABASE_URL=postgres://username:password@host:port/db_name`.
 
 3. **Setup and run the Backend:**
 
-   ```bash
-   python -m venv .venv  # Create a virtual environment
-   .venv/Scripts/activate  # Activate the virtual environment
-   pip install -r ./backend/requirements.txt  # Install dependencies from requirements.txt
+    ```bash
+    python -m venv .venv  # Create a virtual environment
+    .venv/Scripts/activate  # Activate the virtual environment
+    pip install -r ./backend/requirements.txt  # Install dependencies from requirements.txt
 
-   python populate_database.py  # (OPTIONAL) Populate database with GTFS data (adjust paths if necessary)
+    python populate_database.py  # (OPTIONAL) Populate database with GTFS data (adjust paths if necessary)
 
-   cd backend/app
-   uvicorn main:app --reload   # Start the FastAPI server
-   ```
+    cd backend/app
+    uvicorn main:app --reload   # Start the FastAPI server
+    ```
 
-   When you are done, you can deactivate your virtual environment:
+    When you are done, you can deactivate your virtual environment:
 
-   ```bash
-   deactivate
-   ```
+    ```bash
+    deactivate
+    ```
 
 4. **Setup and run the Frontend:**
 
-   ```bash
-   cd frontend
-   npm install  # or yarn install
-   npm run dev  # or yarn dev
-   ```
+    ```bash
+    cd frontend
+    npm install  # or yarn install
+    npm run dev  # or yarn dev
+    ```
 
 Now you should be able to access the frontend application in your browser at `http://localhost:5173` and interact with the FastAPI backend running at `http://localhost:8000`.
 
-## File Structure
+## 🗂️ File Structure
 
 - **backend:**
   - `.venv/`: The virtual environment directory containing isolated Python packages.
@@ -101,10 +114,10 @@ Now you should be able to access the frontend application in your browser at `ht
   - `public/`: Holds static files like your `index.html`.
   - `package.json`: Defines frontend dependencies and scripts.
 
-## Additional Notes
+## 📝 Additional Notes
 
 - **GTFS Data:** You will need to download the latest GTFS data from IDFM (<https://data.iledefrance-mobilites.fr/explore/dataset/offre-horaires-tc-gtfs-idfm/information/>) and place it in the appropriate directory (e.g., `backend/data/raw_gtfs/`).
-  You process the files to only keep the `RATP` lines by using the command `python backend/app/utils/data_processing.py` in the `root` directory.
+    You process the files to only keep the `RATP` lines by using the command `python backend/app/utils/data_processing.py` in the `root` directory.
 - **Database:** Ensure that your PostgreSQL database is set up correctly with the credentials defined in your `.env` file.
 - **Leaflet:** Customize the Leaflet map in your frontend component to match the geographic region you're working with.
 
