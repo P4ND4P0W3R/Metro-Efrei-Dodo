@@ -387,3 +387,4 @@ dist
 backend/data/
 
 .vscode/
+Trimmed_data/
